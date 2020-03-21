@@ -4,6 +4,7 @@
     "module": "ESNext",
     "moduleResolution": "node",
     "strict": true,
+    "strictNullChecks": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
