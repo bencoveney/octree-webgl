@@ -1,0 +1,25 @@
+{
+  "name": "octree-webgl",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prod": "webpack --config ./webpack.config.ts --mode production",
+    "dev": "webpack-dev-server --config ./webpack.config.ts --mode development"
+  },
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bencoveney/octree-webgl.git"
+  },
+  "bugs": {
+    "url": "https://github.com/bencoveney/octree-webgl/issues"
+  },
+  "homepage": "https://github.com/bencoveney/octree-webgl#readme",
+  "devDependencies": {
+    "common-config-webpack-plugin": "^1.4.0",
+    "html-webpack-plugin": "^3.2.0",
+    "webpack": "^4.41.2",
+    "webpack-cli": "^3.3.10",
+    "webpack-dev-server": "^3.9.0"
+  }
+}
