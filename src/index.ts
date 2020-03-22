@@ -1,16 +1,13 @@
 import "./index.scss";
 import { mat4 } from "gl-matrix";
-import {
-  createShader,
-  createShaderProgram,
-  initialiseShaders,
-  ShaderProgramInfo
-} from "./render/shaders";
+import { initialiseShaders, ShaderProgramInfo } from "./render/shaders";
+import { initDevTools, setDevToolsText } from "./devTools";
+import { createWebglCanvas, resize } from "./render/canvas";
 
 function main() {
-  const gl = initCanvas();
+  const gl = createWebglCanvas();
 
-  const devtools = initDevTools();
+  initDevTools();
 
   const shaderProgramInfo = initialiseShaders(gl);
 
@@ -28,7 +25,7 @@ function main() {
 
     const fps = Math.floor(1 / deltaTime);
 
-    devtools.innerText = `${fps} fps`;
+    setDevToolsText(`${fps} fps`);
 
     cubeRotation += deltaTime;
 
@@ -41,50 +38,6 @@ function main() {
 }
 
 window.addEventListener("load", main, false);
-
-function resize(gl) {
-  var realToCSSPixels = window.devicePixelRatio;
-  var displayWidth = Math.floor(gl.canvas.clientWidth * realToCSSPixels);
-  var displayHeight = Math.floor(gl.canvas.clientHeight * realToCSSPixels);
-  if (gl.canvas.width !== displayWidth || gl.canvas.height !== displayHeight) {
-    gl.canvas.width = displayWidth;
-    gl.canvas.height = displayHeight;
-  }
-  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
-}
-
-function initCanvas() {
-  const canvas = document.createElement("canvas");
-
-  canvas.setAttribute("id", "canvas");
-
-  document.body.appendChild(canvas);
-
-  const gl = canvas.getContext("webgl");
-
-  if (gl === null) {
-    alert(
-      "Unable to initialize WebGL. Your browser or machine may not support it."
-    );
-    return;
-  }
-
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
-
-  gl.clear(gl.COLOR_BUFFER_BIT);
-
-  return gl;
-}
-
-function initDevTools() {
-  const devTools = document.createElement("div");
-
-  devTools.setAttribute("id", "devtools");
-
-  document.body.appendChild(devTools);
-
-  return devTools;
-}
 
 function initBuffers(gl) {
   const positionBuffer = gl.createBuffer();

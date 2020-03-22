@@ -1,11 +1,11 @@
-html,
-body {
-  width: 100vw;
-  height: 100vw;
+#devtools {
+  width: 300px;
   box-sizing: border-box;
   margin: 0;
   padding: 0;
   position: absolute;
   overflow: hidden;
   display: block;
+  color: white;
+  background-color: black;
 }
