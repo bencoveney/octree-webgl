@@ -2,34 +2,36 @@ import "./index.scss";
 import { mat4 } from "gl-matrix";
 import { initialiseShaders, ShaderProgramInfo } from "./render/shaders";
 import { initDevTools, setDevToolsText } from "./devTools";
-import { createWebglCanvas, resize } from "./render/canvas";
+import { createViewport, resizeViewport } from "./render/canvas";
+import { model } from "./render/cubeModel";
+import { createModelBuffers, ModelBuffers } from "./render/model";
 
 function main() {
-  const gl = createWebglCanvas();
+  const gl = createViewport();
 
   initDevTools();
 
   const shaderProgramInfo = initialiseShaders(gl);
 
-  const buffers = initBuffers(gl);
+  const buffers = createModelBuffers(gl, model);
 
   var cubeRotation = 0.0;
 
-  var then = 0;
+  var lastTime = 0;
 
   // Draw the scene repeatedly
   function render(now) {
     now *= 0.001;
-    const deltaTime = now - then;
-    then = now;
+    const deltaTime = now - lastTime;
+    lastTime = now;
 
-    const fps = Math.floor(1 / deltaTime);
+    const fps = Math.round(1 / deltaTime);
 
     setDevToolsText(`${fps} fps`);
 
     cubeRotation += deltaTime;
 
-    resize(gl);
+    resizeViewport(gl);
     drawScene(gl, shaderProgramInfo, buffers, cubeRotation);
 
     requestAnimationFrame(render);
@@ -39,278 +41,12 @@ function main() {
 
 window.addEventListener("load", main, false);
 
-function initBuffers(gl) {
-  const positionBuffer = gl.createBuffer();
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
-  const positions = [
-    // Front face
-    -1.0,
-    -1.0,
-    1.0,
-    1.0,
-    -1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    -1.0,
-    1.0,
-    1.0,
-
-    // Back face
-    -1.0,
-    -1.0,
-    -1.0,
-    -1.0,
-    1.0,
-    -1.0,
-    1.0,
-    1.0,
-    -1.0,
-    1.0,
-    -1.0,
-    -1.0,
-
-    // Top face
-    -1.0,
-    1.0,
-    -1.0,
-    -1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    -1.0,
-
-    // Bottom face
-    -1.0,
-    -1.0,
-    -1.0,
-    1.0,
-    -1.0,
-    -1.0,
-    1.0,
-    -1.0,
-    1.0,
-    -1.0,
-    -1.0,
-    1.0,
-
-    // Right face
-    1.0,
-    -1.0,
-    -1.0,
-    1.0,
-    1.0,
-    -1.0,
-    1.0,
-    1.0,
-    1.0,
-    1.0,
-    -1.0,
-    1.0,
-
-    // Left face
-    -1.0,
-    -1.0,
-    -1.0,
-    -1.0,
-    -1.0,
-    1.0,
-    -1.0,
-    1.0,
-    1.0,
-    -1.0,
-    1.0,
-    -1.0
-  ];
-
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(positions), gl.STATIC_DRAW);
-
-  const faceColors = [
-    [1.0, 1.0, 1.0, 1.0], // Front face: white
-    [1.0, 0.0, 0.0, 1.0], // Back face: red
-    [0.0, 1.0, 0.0, 1.0], // Top face: green
-    [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
-    [1.0, 1.0, 0.0, 1.0], // Right face: yellow
-    [1.0, 0.0, 1.0, 1.0] // Left face: purple
-  ];
-
-  var colors = [];
-
-  for (var j = 0; j < faceColors.length; ++j) {
-    const c = faceColors[j];
-
-    colors = colors.concat(c, c, c, c);
-  }
-
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-
-  const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
-  const indices = [
-    // front
-    0,
-    1,
-    2,
-    0,
-    2,
-    3,
-    // back
-    4,
-    5,
-    6,
-    4,
-    6,
-    7,
-    // top
-    8,
-    9,
-    10,
-    8,
-    10,
-    11,
-    // bottom
-    12,
-    13,
-    14,
-    12,
-    14,
-    15,
-    // right
-    16,
-    17,
-    18,
-    16,
-    18,
-    19,
-    // left
-    20,
-    21,
-    22,
-    20,
-    22,
-    23
-  ];
-
-  gl.bufferData(
-    gl.ELEMENT_ARRAY_BUFFER,
-    new Uint16Array(indices),
-    gl.STATIC_DRAW
-  );
-
-  const normalBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-
-  const vertexNormals = [
-    // Front
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-
-    // Back
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-
-    // Top
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-
-    // Bottom
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-
-    // Right
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-    1.0,
-    0.0,
-    0.0,
-
-    // Left
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0,
-    -1.0,
-    0.0,
-    0.0
-  ];
-
-  gl.bufferData(
-    gl.ARRAY_BUFFER,
-    new Float32Array(vertexNormals),
-    gl.STATIC_DRAW
-  );
-
-  return {
-    position: positionBuffer,
-    color: colorBuffer,
-    indices: indexBuffer,
-    normal: normalBuffer
-  };
-}
-
-function drawScene(gl, programInfo: ShaderProgramInfo, buffers, cubeRotation) {
+function drawScene(
+  gl: WebGLRenderingContext,
+  programInfo: ShaderProgramInfo,
+  buffers: ModelBuffers,
+  cubeRotation: number
+) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   gl.enable(gl.CULL_FACE);
@@ -320,7 +56,9 @@ function drawScene(gl, programInfo: ShaderProgramInfo, buffers, cubeRotation) {
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
   const fieldOfView = (45 * Math.PI) / 180;
-  const aspect = gl.canvas.clientWidth / gl.canvas.clientHeight;
+  const aspect =
+    (gl.canvas as HTMLCanvasElement).clientWidth /
+    (gl.canvas as HTMLCanvasElement).clientHeight;
   const zNear = 0.1;
   const zFar = 100.0;
   const projectionMatrix = mat4.create();
@@ -373,7 +111,7 @@ function drawScene(gl, programInfo: ShaderProgramInfo, buffers, cubeRotation) {
     gl.enableVertexAttribArray(programInfo.attributeLocations.vertexColor);
   }
 
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
 
   {
     const numComponents = 3;

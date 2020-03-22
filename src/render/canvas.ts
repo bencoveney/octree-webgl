@@ -3,7 +3,7 @@ import "./canvas.scss";
 let canvas: HTMLCanvasElement;
 let gl: WebGLRenderingContext;
 
-export function createWebglCanvas(): WebGLRenderingContext {
+export function createViewport(): WebGLRenderingContext {
   canvas = document.createElement("canvas");
   canvas.setAttribute("id", "canvas");
   document.body.appendChild(canvas);
@@ -19,7 +19,7 @@ export function createWebglCanvas(): WebGLRenderingContext {
   return gl;
 }
 
-export function resize(gl: WebGLRenderingContext) {
+export function resizeViewport(gl: WebGLRenderingContext) {
   var realToCSSPixels = window.devicePixelRatio;
   var displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels);
   var displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
