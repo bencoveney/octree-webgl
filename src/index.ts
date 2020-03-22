@@ -1,29 +1,18 @@
 import "./index.scss";
-import vertexShaderSource from "./vertex.glsl";
-import fragmentShaderSource from "./fragment.glsl";
 import { mat4 } from "gl-matrix";
+import {
+  createShader,
+  createShaderProgram,
+  initialiseShaders,
+  ShaderProgramInfo
+} from "./render/shaders";
 
 function main() {
   const gl = initCanvas();
 
-  const shaderProgram = initShaderProgram(gl);
+  const devtools = initDevTools();
 
-  const programInfo = {
-    program: shaderProgram,
-    attribLocations: {
-      vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-      vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal")
-    },
-    uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(
-        shaderProgram,
-        "uProjectionMatrix"
-      ),
-      modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-      normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix")
-    }
-  };
+  const shaderProgramInfo = initialiseShaders(gl);
 
   const buffers = initBuffers(gl);
 
@@ -37,10 +26,14 @@ function main() {
     const deltaTime = now - then;
     then = now;
 
+    const fps = Math.floor(1 / deltaTime);
+
+    devtools.innerText = `${fps} fps`;
+
     cubeRotation += deltaTime;
 
     resize(gl);
-    drawScene(gl, programInfo, buffers, cubeRotation);
+    drawScene(gl, shaderProgramInfo, buffers, cubeRotation);
 
     requestAnimationFrame(render);
   }
@@ -64,8 +57,6 @@ function initCanvas() {
   const canvas = document.createElement("canvas");
 
   canvas.setAttribute("id", "canvas");
-  // canvas.setAttribute("width", "640");
-  // canvas.setAttribute("height", "480");
 
   document.body.appendChild(canvas);
 
@@ -85,46 +76,14 @@ function initCanvas() {
   return gl;
 }
 
-function initShaderProgram(gl: WebGLRenderingContext) {
-  const vertexShader = loadShader(gl, gl.VERTEX_SHADER, vertexShaderSource);
-  const fragmentShader = loadShader(
-    gl,
-    gl.FRAGMENT_SHADER,
-    fragmentShaderSource
-  );
+function initDevTools() {
+  const devTools = document.createElement("div");
 
-  const shaderProgram = gl.createProgram();
-  gl.attachShader(shaderProgram, vertexShader);
-  gl.attachShader(shaderProgram, fragmentShader);
-  gl.linkProgram(shaderProgram);
+  devTools.setAttribute("id", "devtools");
 
-  if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-    console.error(
-      "Unable to initialize the shader program: " +
-        gl.getProgramInfoLog(shaderProgram)
-    );
-    return null;
-  }
+  document.body.appendChild(devTools);
 
-  return shaderProgram;
-}
-
-function loadShader(gl: WebGLRenderingContext, type: number, source: string) {
-  const shader = gl.createShader(type);
-
-  gl.shaderSource(shader, source);
-
-  gl.compileShader(shader);
-
-  if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-    console.error(
-      "An error occurred compiling the shaders: " + gl.getShaderInfoLog(shader)
-    );
-    gl.deleteShader(shader);
-    return null;
-  }
-
-  return shader;
+  return devTools;
 }
 
 function initBuffers(gl) {
@@ -398,9 +357,10 @@ function initBuffers(gl) {
   };
 }
 
-function drawScene(gl, programInfo, buffers, cubeRotation) {
+function drawScene(gl, programInfo: ShaderProgramInfo, buffers, cubeRotation) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
+  gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
 
@@ -432,14 +392,14 @@ function drawScene(gl, programInfo, buffers, cubeRotation) {
     const offset = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexPosition,
+      programInfo.attributeLocations.vertexPosition,
       numComponents,
       type,
       normalize,
       stride,
       offset
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexPosition);
+    gl.enableVertexAttribArray(programInfo.attributeLocations.vertexPosition);
   }
 
   {
@@ -450,14 +410,14 @@ function drawScene(gl, programInfo, buffers, cubeRotation) {
     const offset = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
+      programInfo.attributeLocations.vertexColor,
       numComponents,
       type,
       normalize,
       stride,
       offset
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexColor);
+    gl.enableVertexAttribArray(programInfo.attributeLocations.vertexColor);
   }
 
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.indices);
@@ -470,14 +430,14 @@ function drawScene(gl, programInfo, buffers, cubeRotation) {
     const offset = 0;
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
     gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexNormal,
+      programInfo.attributeLocations.vertexNormal,
       numComponents,
       type,
       normalize,
       stride,
       offset
     );
-    gl.enableVertexAttribArray(programInfo.attribLocations.vertexNormal);
+    gl.enableVertexAttribArray(programInfo.attributeLocations.vertexNormal);
   }
 
   gl.useProgram(programInfo.program);
