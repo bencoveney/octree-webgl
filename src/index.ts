@@ -4,7 +4,7 @@ import fragmentShaderSource from "./fragment.glsl";
 import { mat4 } from "gl-matrix";
 
 function main() {
-  const { canvas, gl } = initCanvas();
+  const gl = initCanvas();
 
   const shaderProgram = initShaderProgram(gl);
 
@@ -31,9 +31,6 @@ function main() {
 
   var then = 0;
 
-  resize(gl, canvas);
-  window.addEventListener("resize", () => resize(gl, canvas), false);
-
   // Draw the scene repeatedly
   function render(now) {
     now *= 0.001;
@@ -42,6 +39,7 @@ function main() {
 
     cubeRotation += deltaTime;
 
+    resize(gl);
     drawScene(gl, programInfo, buffers, cubeRotation);
 
     requestAnimationFrame(render);
@@ -51,11 +49,15 @@ function main() {
 
 window.addEventListener("load", main, false);
 
-function resize(gl, canvas: HTMLCanvasElement) {
-  canvas.setAttribute("width", window.innerWidth + "px");
-  canvas.setAttribute("height", window.innerHeight + "px");
-
-  gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
+function resize(gl) {
+  var realToCSSPixels = window.devicePixelRatio;
+  var displayWidth = Math.floor(gl.canvas.clientWidth * realToCSSPixels);
+  var displayHeight = Math.floor(gl.canvas.clientHeight * realToCSSPixels);
+  if (gl.canvas.width !== displayWidth || gl.canvas.height !== displayHeight) {
+    gl.canvas.width = displayWidth;
+    gl.canvas.height = displayHeight;
+  }
+  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
 }
 
 function initCanvas() {
@@ -80,7 +82,7 @@ function initCanvas() {
 
   gl.clear(gl.COLOR_BUFFER_BIT);
 
-  return { canvas, gl };
+  return gl;
 }
 
 function initShaderProgram(gl: WebGLRenderingContext) {
