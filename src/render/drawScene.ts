@@ -1,12 +1,13 @@
 import { ShaderProgramInfo } from "./shaders";
 import { ModelBuffers } from "./model";
 import { mat4 } from "gl-matrix";
+import { Cube, createPositionMatrix } from "../cube";
 
 export function drawScene(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: ModelBuffers,
-  cubeRotation: number
+  cubes: Cube[]
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
@@ -49,23 +50,25 @@ export function drawScene(
     projectionMatrix
   );
 
-  const modelViewMatrix = createModelViewMatrix(cubeRotation);
-  bindUniformMatrix(
-    gl,
-    programInfo.uniformLocations.modelViewMatrix,
-    modelViewMatrix
-  );
+  cubes.forEach(cube => {
+    const modelViewMatrix = createPositionMatrix(cube);
+    bindUniformMatrix(
+      gl,
+      programInfo.uniformLocations.modelViewMatrix,
+      modelViewMatrix
+    );
 
-  const normalMatrix = createNormalMatrix(modelViewMatrix);
-  bindUniformMatrix(
-    gl,
-    programInfo.uniformLocations.normalMatrix,
-    normalMatrix
-  );
+    const normalMatrix = createNormalMatrix(modelViewMatrix);
+    bindUniformMatrix(
+      gl,
+      programInfo.uniformLocations.normalMatrix,
+      normalMatrix
+    );
 
-  // Tell the GPU which order to draw the vertices in.
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
-  gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+    // Tell the GPU which order to draw the vertices in.
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
+    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+  });
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
