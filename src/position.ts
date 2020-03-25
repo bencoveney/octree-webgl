@@ -1,18 +1,18 @@
 import { vec3, mat4 } from "gl-matrix";
 
-export interface Cube {
+export interface Position {
   position: vec3;
   rotation: vec3;
 }
 
-export function createCube(x, y, z): Cube {
+export function createPosition(x, y, z): Position {
   return {
     position: vec3.fromValues(x, y, z),
     rotation: vec3.create()
   };
 }
 
-export function createPositionMatrix(cube: Cube): mat4 {
+export function createPositionMatrix(cube: Position): mat4 {
   const position = mat4.create();
   mat4.translate(position, position, cube.position);
 
@@ -21,10 +21,10 @@ export function createPositionMatrix(cube: Cube): mat4 {
     mat4.rotateX(position, position, x);
   }
   if (y) {
-    mat4.rotateX(position, position, y);
+    mat4.rotateY(position, position, y);
   }
   if (z) {
-    mat4.rotateX(position, position, z);
+    mat4.rotateZ(position, position, z);
   }
 
   return position;

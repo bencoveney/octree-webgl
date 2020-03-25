@@ -1,13 +1,16 @@
 import { ShaderProgramInfo } from "./shaders";
 import { ModelBuffers } from "./model";
 import { mat4 } from "gl-matrix";
-import { Cube, createPositionMatrix } from "../cube";
+import { Position, createPositionMatrix } from "../position";
+import { degToRad } from "../utils";
 
 export function drawScene(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: ModelBuffers,
-  cubes: Cube[]
+  cubePositions: Position[],
+  worldPosition: Position,
+  cameraPosition: Position
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
@@ -50,8 +53,20 @@ export function drawScene(
     projectionMatrix
   );
 
-  cubes.forEach(cube => {
-    const modelViewMatrix = createPositionMatrix(cube);
+  const cameraMatrix = createCameraMatrix(cameraPosition);
+  const worldMatrix = createPositionMatrix(worldPosition);
+
+  cubePositions.forEach(position => {
+    const positionMatrix = createPositionMatrix(position);
+
+    const modelViewMatrix = mat4.clone(cameraMatrix);
+
+    // Move world relative to camera
+    mat4.multiply(modelViewMatrix, modelViewMatrix, worldMatrix);
+
+    // Move cube relative to world
+    mat4.multiply(modelViewMatrix, modelViewMatrix, positionMatrix);
+
     bindUniformMatrix(
       gl,
       programInfo.uniformLocations.modelViewMatrix,
@@ -72,7 +87,7 @@ export function drawScene(
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
-  const fieldOfView = (45 * Math.PI) / 180;
+  const fieldOfView = degToRad(45);
   const aspect =
     (gl.canvas as HTMLCanvasElement).clientWidth /
     (gl.canvas as HTMLCanvasElement).clientHeight;
@@ -84,11 +99,10 @@ function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
   return projectionMatrix;
 }
 
-function createModelViewMatrix(cubeRotation: number): mat4 {
-  const modelViewMatrix = mat4.create();
-  mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 1.0, -10.0]);
-  mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * 0.7, [0, 1, 1]);
-  return modelViewMatrix;
+function createCameraMatrix(position: Position): mat4 {
+  const cameraMatrix = createPositionMatrix(position);
+  mat4.invert(cameraMatrix, cameraMatrix);
+  return cameraMatrix;
 }
 
 function createNormalMatrix(modelViewMatrix: mat4): mat4 {

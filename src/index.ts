@@ -5,8 +5,7 @@ import { createViewport, resizeViewport } from "./render/canvas";
 import { model } from "./render/cubeModel";
 import { createModelBuffers } from "./render/model";
 import { drawScene } from "./render/drawScene";
-import { createCube, createPositionMatrix } from "./cube";
-import { mat4 } from "gl-matrix";
+import { createPosition } from "./position";
 
 function main() {
   const gl = createViewport();
@@ -17,17 +16,33 @@ function main() {
   var totalTime = 0;
 
   const cubes = [
-    createCube(0, 0, -7),
-    createCube(3, 0, -7),
-    createCube(0, 3, -7)
+    createPosition(0, 0, 0),
+    createPosition(3, 0, 0),
+    createPosition(0, 3, 0),
+    createPosition(-3, 0, 0),
+    createPosition(0, -3, 0)
   ];
+
+  const cameraPosition = createPosition(0, 0, 10);
+
+  const worldPosition = createPosition(0, 0, 0);
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
     setDevToolsText(`${Math.round(1 / deltaTimeS)} fps`);
     resizeViewport(gl);
     totalTime += deltaTimeS;
-    drawScene(gl, shaderProgramInfo, buffers, cubes);
+
+    worldPosition.rotation[1] = totalTime;
+
+    drawScene(
+      gl,
+      shaderProgramInfo,
+      buffers,
+      cubes,
+      worldPosition,
+      cameraPosition
+    );
   });
 }
 
