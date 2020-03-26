@@ -13,7 +13,8 @@ export function drawScene(
   lineBuffers: LineModelBuffers,
   cubePositions: Position[],
   worldPosition: Position,
-  cameraPosition: Position
+  cameraPosition: Position,
+  axisPosition: Position
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
@@ -39,6 +40,7 @@ export function drawScene(
     gl,
     lineProgramInfo,
     lineBuffers,
+    axisPosition,
     worldPosition,
     cameraPosition
   );
@@ -177,6 +179,7 @@ function drawLineModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: LineModelBuffers,
+  position: Position,
   worldPosition: Position,
   cameraPosition: Position
 ) {
@@ -208,7 +211,7 @@ function drawLineModel(
   const cameraMatrix = createCameraMatrix(cameraPosition);
   const worldMatrix = createPositionMatrix(worldPosition);
 
-  const positionMatrix = mat4.create();
+  const positionMatrix = createPositionMatrix(position);
 
   const modelViewMatrix = mat4.clone(cameraMatrix);
 

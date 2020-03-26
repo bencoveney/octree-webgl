@@ -20,16 +20,18 @@ function main() {
   var totalTime = 0;
 
   const cubes = [
-    createPosition(0, 0, 0),
-    createPosition(3, 0, 0),
-    createPosition(0, 3, 0),
-    createPosition(-3, 0, 0),
-    createPosition(0, -3, 0)
+    createPosition(0, 0, 0, 0.5),
+    createPosition(1, 0, 0, 0.5),
+    createPosition(0, 1, 0, 0.5),
+    createPosition(-1, 0, 0, 0.5),
+    createPosition(0, -1, 0, 0.5)
   ];
 
-  const cameraPosition = createPosition(0, 0, 10);
+  const cameraPosition = createPosition(0, 0, 10, 0);
 
-  const worldPosition = createPosition(0, 0, 0);
+  const worldPosition = createPosition(0, 0, 0, 0);
+
+  const axisPosition = createPosition(0, 0, 0, 1);
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
@@ -38,6 +40,7 @@ function main() {
     totalTime += deltaTimeS;
 
     worldPosition.rotation[1] = -totalTime;
+    worldPosition.rotation[0] = -Math.sin(totalTime);
 
     drawScene(
       gl,
@@ -47,7 +50,8 @@ function main() {
       lineBuffers,
       cubes,
       worldPosition,
-      cameraPosition
+      cameraPosition,
+      axisPosition
     );
   });
 }
