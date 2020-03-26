@@ -1,9 +1,11 @@
 import "./index.scss";
-import { initialiseShaders } from "./render/shaders";
+import { initialiseShaders, initialiseLineShaders } from "./render/shaders";
 import { initDevTools, setDevToolsText } from "./devTools";
 import { createViewport, resizeViewport } from "./render/canvas";
 import { model } from "./render/cubeModel";
+import { model as lineModel } from "./render/axisModel";
 import { createModelBuffers } from "./render/model";
+import { createModelBuffers as createLineModelBuffers } from "./render/lineModel";
 import { drawScene } from "./render/drawScene";
 import { createPosition } from "./position";
 
@@ -11,7 +13,9 @@ function main() {
   const gl = createViewport();
   initDevTools();
   const shaderProgramInfo = initialiseShaders(gl);
+  const lineShaderProgramInfo = initialiseLineShaders(gl);
   const buffers = createModelBuffers(gl, model);
+  const lineBuffers = createLineModelBuffers(gl, lineModel);
 
   var totalTime = 0;
 
@@ -33,12 +37,14 @@ function main() {
     resizeViewport(gl);
     totalTime += deltaTimeS;
 
-    worldPosition.rotation[1] = totalTime;
+    worldPosition.rotation[1] = -totalTime;
 
     drawScene(
       gl,
       shaderProgramInfo,
+      lineShaderProgramInfo,
       buffers,
+      lineBuffers,
       cubes,
       worldPosition,
       cameraPosition
