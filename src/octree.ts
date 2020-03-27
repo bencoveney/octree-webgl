@@ -31,8 +31,10 @@ type Node<T> = InnerNode<T> | LeafNode<T>;
 
 export function create<T>(
   depth: number,
-  callback: (center: vec3) => T
+  callback: (center: vec3, size: number) => T
 ): Node<T> {
+  const firstSize = Math.pow(2, depth);
+
   function createNode(
     parent: Node<T> | null,
     currentDepth: number,
@@ -45,7 +47,7 @@ export function create<T>(
         center,
         halfSize,
         isLeaf: true,
-        value: callback(center)
+        value: callback(center, firstSize)
       };
       return leaf;
     }
@@ -147,14 +149,8 @@ export function create<T>(
     return innerNode;
   }
 
-  const firstWidth = Math.pow(2, depth);
-
-  const firstHalfSize = firstWidth / 2;
-  const firstCenter = vec3.fromValues(
-    firstHalfSize,
-    firstHalfSize,
-    firstHalfSize
-  );
+  const firstHalfSize = firstSize / 2;
+  const firstCenter = vec3.fromValues(0, 0, 0);
 
   return createNode(null, depth, firstCenter, firstHalfSize);
 }

@@ -9,6 +9,7 @@ import { createModelBuffers as createLineModelBuffers } from "./render/lineModel
 import { drawScene } from "./render/drawScene";
 import { createPosition } from "./position";
 import * as Octree from "./octree";
+import { vec3 } from "gl-matrix";
 
 function main() {
   const gl = createViewport();
@@ -20,15 +21,12 @@ function main() {
 
   let totalTime = 0;
 
-  const treeSize = 2;
+  const treeSize = 3;
 
-  const octree = Octree.create<boolean>(treeSize, ([x, y, z]) => {
-    const total = x - 0.5 + (y - 0.5) + (z - 0.5);
-    if (total != Math.floor(total)) {
-      throw new Error("oops");
-    }
-
-    return !!(total % 2);
+  const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {
+    const halfSize = fullSize / 2;
+    const distance = vec3.distance(position, vec3.create());
+    return distance < halfSize;
   });
   const allOctreeCubes = Octree.flatten(octree);
   const filteredOctreeCubes = allOctreeCubes.filter(leaf => leaf.value);
@@ -39,8 +37,9 @@ function main() {
   const cameraPosition = createPosition(0, 0, Math.pow(2, treeSize + 2), 0);
 
   const worldPosition = createPosition(0, 0, 0, 0);
+  worldPosition.rotation[0] = 0.4;
 
-  const axisPosition = createPosition(0, 0, 0, Math.pow(2, treeSize));
+  const axisPosition = createPosition(0, 0, 0, 1);
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
@@ -50,7 +49,6 @@ ${filteredOctreeCubes.length}/${allOctreeCubes.length} cubes`);
     totalTime += deltaTimeS;
 
     worldPosition.rotation[1] = -totalTime / 2;
-    worldPosition.rotation[0] = -Math.sin(totalTime);
 
     drawScene(
       gl,
