@@ -1,6 +1,6 @@
 import { ShaderProgramInfo } from "./shaders";
 import { ModelBuffers } from "./model";
-import { mat4 } from "gl-matrix";
+import { mat4, vec3 } from "gl-matrix";
 import { Position, createPositionMatrix } from "../position";
 import { degToRad } from "../utils";
 import { LineModelBuffers } from "./lineModel";
@@ -14,7 +14,10 @@ export function drawScene(
   cubePositions: Position[],
   worldPosition: Position,
   cameraPosition: Position,
-  axisPosition: Position
+  axisPosition: Position,
+  ambientLightColor: vec3,
+  directionalLightColor: vec3,
+  directionalLightDirection: vec3
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
@@ -31,7 +34,10 @@ export function drawScene(
     buffers,
     cubePositions,
     worldPosition,
-    cameraPosition
+    cameraPosition,
+    ambientLightColor,
+    directionalLightColor,
+    directionalLightDirection
   );
 
   gl.disable(gl.DEPTH_TEST);
@@ -102,15 +108,44 @@ function bindUniformMatrix(
   gl.uniformMatrix4fv(uniformLocation, false, matrix);
 }
 
+function bindUniformVector(
+  gl: WebGLRenderingContext,
+  uniformLocation: WebGLUniformLocation,
+  vector: vec3
+) {
+  gl.uniform3fv(uniformLocation, vector);
+}
+
 function drawModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: ModelBuffers,
   cubePositions: Position[],
   worldPosition: Position,
-  cameraPosition: Position
+  cameraPosition: Position,
+  ambientLightColor: vec3,
+  directionalLightColor: vec3,
+  directionalLightDirection: vec3
 ) {
   gl.useProgram(programInfo.program);
+
+  bindUniformVector(
+    gl,
+    programInfo.uniformLocations.ambientLightColor,
+    ambientLightColor
+  );
+
+  bindUniformVector(
+    gl,
+    programInfo.uniformLocations.directionalLightColor,
+    directionalLightColor
+  );
+
+  bindUniformVector(
+    gl,
+    programInfo.uniformLocations.directionalLightDirection,
+    directionalLightDirection
+  );
 
   // Tell the GPU which values to insert into the shaders for position, color, normal.
   bindAttributeBuffer(

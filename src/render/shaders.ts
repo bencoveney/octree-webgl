@@ -24,7 +24,19 @@ export function initialiseShaders(
         "uProjectionMatrix"
       ),
       modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-      normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix")
+      normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
+      ambientLightColor: gl.getUniformLocation(
+        shaderProgram,
+        "uAmbientLightColor"
+      ),
+      directionalLightColor: gl.getUniformLocation(
+        shaderProgram,
+        "uDirectionalLightColor"
+      ),
+      directionalLightDirection: gl.getUniformLocation(
+        shaderProgram,
+        "uDirectionalLightDirection"
+      )
     }
   };
 }

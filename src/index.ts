@@ -41,10 +41,14 @@ function main() {
 
   const axisPosition = createPosition(0, 0, 0, 1);
 
+  const ambientLightColor = vec3.fromValues(0.3, 0.3, 0.3);
+  const directionalLightColor = vec3.fromValues(1, 1, 1);
+  const directionalLightDirection = vec3.fromValues(0.85, 0.8, 0.75);
+
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
-    setDevToolsText(`${Math.round(1 / deltaTimeS)} fps
-${filteredOctreeCubes.length}/${allOctreeCubes.length} cubes`);
+    setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
+cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
     resizeViewport(gl);
     totalTime += deltaTimeS;
 
@@ -59,7 +63,10 @@ ${filteredOctreeCubes.length}/${allOctreeCubes.length} cubes`);
       cubePositions,
       worldPosition,
       cameraPosition,
-      axisPosition
+      axisPosition,
+      ambientLightColor,
+      directionalLightColor,
+      directionalLightDirection
     );
   });
 }
