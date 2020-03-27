@@ -8,6 +8,7 @@ import { createModelBuffers } from "./render/model";
 import { createModelBuffers as createLineModelBuffers } from "./render/lineModel";
 import { drawScene } from "./render/drawScene";
 import { createPosition } from "./position";
+import * as Octree from "./octree";
 
 function main() {
   const gl = createViewport();
@@ -17,29 +18,38 @@ function main() {
   const buffers = createModelBuffers(gl, model);
   const lineBuffers = createLineModelBuffers(gl, lineModel);
 
-  var totalTime = 0;
+  let totalTime = 0;
 
-  const cubes = [
-    createPosition(0, 0, 0, 0.5),
-    createPosition(1, 0, 0, 0.5),
-    createPosition(0, 1, 0, 0.5),
-    createPosition(-1, 0, 0, 0.5),
-    createPosition(0, -1, 0, 0.5)
-  ];
+  const treeSize = 2;
 
-  const cameraPosition = createPosition(0, 0, 10, 0);
+  const octree = Octree.create<boolean>(treeSize, ([x, y, z]) => {
+    const total = x - 0.5 + (y - 0.5) + (z - 0.5);
+    if (total != Math.floor(total)) {
+      throw new Error("oops");
+    }
+
+    return !!(total % 2);
+  });
+  const allOctreeCubes = Octree.flatten(octree);
+  const filteredOctreeCubes = allOctreeCubes.filter(leaf => leaf.value);
+  const cubePositions = filteredOctreeCubes.map(({ center, halfSize }) =>
+    createPosition(center[0], center[1], center[2], halfSize)
+  );
+
+  const cameraPosition = createPosition(0, 0, Math.pow(2, treeSize + 2), 0);
 
   const worldPosition = createPosition(0, 0, 0, 0);
 
-  const axisPosition = createPosition(0, 0, 0, 1);
+  const axisPosition = createPosition(0, 0, 0, Math.pow(2, treeSize));
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
-    setDevToolsText(`${Math.round(1 / deltaTimeS)} fps`);
+    setDevToolsText(`${Math.round(1 / deltaTimeS)} fps
+${filteredOctreeCubes.length}/${allOctreeCubes.length} cubes`);
     resizeViewport(gl);
     totalTime += deltaTimeS;
 
-    worldPosition.rotation[1] = -totalTime;
+    worldPosition.rotation[1] = -totalTime / 2;
     worldPosition.rotation[0] = -Math.sin(totalTime);
 
     drawScene(
@@ -48,7 +58,7 @@ function main() {
       lineShaderProgramInfo,
       buffers,
       lineBuffers,
-      cubes,
+      cubePositions,
       worldPosition,
       cameraPosition,
       axisPosition
