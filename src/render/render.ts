@@ -1,9 +1,10 @@
 import { ShaderProgramInfo } from "./shaders";
 import { ModelBuffers } from "./model";
 import { mat4, vec3 } from "gl-matrix";
-import { Position, createPositionMatrix } from "../position";
+import { Position, toMatrix } from "../position";
 import { degToRad } from "../utils";
 import { LineModelBuffers } from "./lineModel";
+import { World } from "../world";
 
 export function render(
   gl: WebGLRenderingContext,
@@ -13,12 +14,8 @@ export function render(
   lineBuffers: LineModelBuffers,
   lineBuffers2: LineModelBuffers,
   cubePositions: Position[],
-  worldPosition: Position,
-  cameraPosition: Position,
   axisPosition: Position,
-  ambientLightColor: vec3,
-  directionalLightColor: vec3,
-  directionalLightDirection: vec3
+  world: World
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
@@ -29,37 +26,13 @@ export function render(
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  drawModel(
-    gl,
-    programInfo,
-    buffers,
-    cubePositions,
-    worldPosition,
-    cameraPosition,
-    ambientLightColor,
-    directionalLightColor,
-    directionalLightDirection
-  );
+  drawModel(gl, programInfo, buffers, cubePositions, world);
 
   gl.disable(gl.DEPTH_TEST);
 
-  drawLineModel(
-    gl,
-    lineProgramInfo,
-    lineBuffers,
-    [axisPosition],
-    worldPosition,
-    cameraPosition
-  );
+  drawLineModel(gl, lineProgramInfo, lineBuffers, [axisPosition], world);
 
-  drawLineModel(
-    gl,
-    lineProgramInfo,
-    lineBuffers2,
-    cubePositions,
-    worldPosition,
-    cameraPosition
-  );
+  drawLineModel(gl, lineProgramInfo, lineBuffers2, cubePositions, world);
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
@@ -76,7 +49,7 @@ function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
 }
 
 function createCameraMatrix(position: Position): mat4 {
-  const cameraMatrix = createPositionMatrix(position);
+  const cameraMatrix = toMatrix(position);
   mat4.invert(cameraMatrix, cameraMatrix);
   return cameraMatrix;
 }
@@ -131,30 +104,26 @@ function drawModel(
   programInfo: ShaderProgramInfo,
   buffers: ModelBuffers,
   cubePositions: Position[],
-  worldPosition: Position,
-  cameraPosition: Position,
-  ambientLightColor: vec3,
-  directionalLightColor: vec3,
-  directionalLightDirection: vec3
+  world: World
 ) {
   gl.useProgram(programInfo.program);
 
   bindUniformVector(
     gl,
     programInfo.uniformLocations.ambientLightColor,
-    ambientLightColor
+    world.ambientLightColor
   );
 
   bindUniformVector(
     gl,
     programInfo.uniformLocations.directionalLightColor,
-    directionalLightColor
+    world.directionalLightColor
   );
 
   bindUniformVector(
     gl,
     programInfo.uniformLocations.directionalLightDirection,
-    directionalLightDirection
+    world.directionalLightDirection
   );
 
   // Tell the GPU which values to insert into the shaders for position, color, normal.
@@ -187,11 +156,11 @@ function drawModel(
     projectionMatrix
   );
 
-  const cameraMatrix = createCameraMatrix(cameraPosition);
-  const worldMatrix = createPositionMatrix(worldPosition);
+  const cameraMatrix = createCameraMatrix(world.camera.position);
+  const worldMatrix = toMatrix(world.sceneGraph.position);
 
   cubePositions.forEach(position => {
-    const positionMatrix = createPositionMatrix(position);
+    const positionMatrix = toMatrix(position);
 
     const modelViewMatrix = mat4.clone(cameraMatrix);
 
@@ -225,8 +194,7 @@ function drawLineModel(
   programInfo: ShaderProgramInfo,
   buffers: LineModelBuffers,
   positions: Position[],
-  worldPosition: Position,
-  cameraPosition: Position
+  world: World
 ) {
   gl.useProgram(programInfo.program);
 
@@ -253,11 +221,11 @@ function drawLineModel(
     projectionMatrix
   );
 
-  const cameraMatrix = createCameraMatrix(cameraPosition);
-  const worldMatrix = createPositionMatrix(worldPosition);
+  const cameraMatrix = createCameraMatrix(world.camera.position);
+  const worldMatrix = toMatrix(world.sceneGraph.position);
 
   positions.forEach(position => {
-    const positionMatrix = createPositionMatrix(position);
+    const positionMatrix = toMatrix(position);
 
     const modelViewMatrix = mat4.clone(cameraMatrix);
 

@@ -6,7 +6,15 @@ export interface Position {
   scale;
 }
 
-export function createPosition(x, y, z, scale): Position {
+export function init(): Position {
+  return {
+    position: vec3.create(),
+    rotation: vec3.create(),
+    scale: 1
+  };
+}
+
+export function create(x, y, z, scale): Position {
   return {
     position: vec3.fromValues(x, y, z),
     rotation: vec3.create(),
@@ -14,11 +22,7 @@ export function createPosition(x, y, z, scale): Position {
   };
 }
 
-export function createPositionMatrix({
-  position,
-  rotation,
-  scale
-}: Position): mat4 {
+export function toMatrix({ position, rotation, scale }: Position): mat4 {
   const matrix = mat4.create();
   mat4.translate(matrix, matrix, position);
 

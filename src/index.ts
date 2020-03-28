@@ -7,8 +7,9 @@ import { model as lineModel } from "./render/axisModel";
 import { createModelBuffers } from "./render/model";
 import { createModelBuffers as createLineModelBuffers } from "./render/lineModel";
 import { render } from "./render/render";
-import { createPosition } from "./position";
+import * as Position from "./position";
 import * as Octree from "./octree";
+import * as World from "./world";
 import { vec3 } from "gl-matrix";
 import { createLineModel } from "./render/createLineModel";
 
@@ -34,19 +35,19 @@ function main() {
   const allOctreeCubes = Octree.flatten(octree);
   const filteredOctreeCubes = allOctreeCubes.filter(leaf => leaf.value);
   const cubePositions = filteredOctreeCubes.map(({ center, halfSize }) =>
-    createPosition(center[0], center[1], center[2], halfSize)
+    Position.create(center[0], center[1], center[2], halfSize)
   );
 
-  const cameraPosition = createPosition(0, 0, Math.pow(2, treeSize + 2), 0);
+  const axisPosition = Position.create(0, 0, 0, 1);
 
-  const worldPosition = createPosition(0, 0, 0, 0);
-  worldPosition.rotation[0] = 0.4;
+  const world = World.create(
+    Position.create(0, 0, Math.pow(2, treeSize + 2), 1),
+    vec3.fromValues(0.3, 0.3, 0.3),
+    vec3.fromValues(1, 1, 1),
+    vec3.fromValues(0.85, 0.8, 0.75)
+  );
 
-  const axisPosition = createPosition(0, 0, 0, 1);
-
-  const ambientLightColor = vec3.fromValues(0.3, 0.3, 0.3);
-  const directionalLightColor = vec3.fromValues(1, 1, 1);
-  const directionalLightDirection = vec3.fromValues(0.85, 0.8, 0.75);
+  world.sceneGraph.position.rotation[0] = 0.4;
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
@@ -55,7 +56,7 @@ cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
     resizeViewport(gl);
     totalTime += deltaTimeS;
 
-    worldPosition.rotation[1] = -totalTime / 2;
+    world.sceneGraph.position.rotation[1] = -totalTime / 2;
 
     render(
       gl,
@@ -65,12 +66,8 @@ cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
       lineBuffers,
       lineBuffers2,
       cubePositions,
-      worldPosition,
-      cameraPosition,
       axisPosition,
-      ambientLightColor,
-      directionalLightColor,
-      directionalLightDirection
+      world
     );
   });
 }
