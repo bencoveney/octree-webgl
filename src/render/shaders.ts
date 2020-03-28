@@ -4,9 +4,16 @@ export type ShaderProgramInfo = {
   uniformLocations: { [attributeName: string]: WebGLUniformLocation };
 };
 
-export function initialiseShaders(
-  gl: WebGLRenderingContext
-): ShaderProgramInfo {
+export type Shaders = {
+  tri: ShaderProgramInfo;
+  line: ShaderProgramInfo;
+};
+
+export function initialiseShaders(gl): Shaders {
+  return { tri: initialiseTriShaders(gl), line: initialiseLineShaders(gl) };
+}
+
+function initialiseTriShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
   const vertexShader = createShader(gl, "vertex", gl.VERTEX_SHADER);
   const fragmentShader = createShader(gl, "fragment", gl.FRAGMENT_SHADER);
   const shaderProgram = createShaderProgram(gl, vertexShader, fragmentShader);
@@ -41,9 +48,7 @@ export function initialiseShaders(
   };
 }
 
-export function initialiseLineShaders(
-  gl: WebGLRenderingContext
-): ShaderProgramInfo {
+function initialiseLineShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
   const vertexShader = createShader(gl, "lineVertex", gl.VERTEX_SHADER);
   const fragmentShader = createShader(gl, "lineFragment", gl.FRAGMENT_SHADER);
   const shaderProgram = createShaderProgram(gl, vertexShader, fragmentShader);
@@ -64,14 +69,14 @@ export function initialiseLineShaders(
   };
 }
 
-export function createShader(
+function createShader(
   gl: WebGLRenderingContext,
   shaderName: string,
   shaderType: number
 ): WebGLShader {
   const shader = gl.createShader(shaderType);
 
-  const shaderSource = require(`./${shaderName}.glsl`);
+  const shaderSource = require(`./shaders/${shaderName}.glsl`);
   gl.shaderSource(shader, shaderSource);
 
   gl.compileShader(shader);
@@ -85,7 +90,7 @@ export function createShader(
   return shader;
 }
 
-export function createShaderProgram(
+function createShaderProgram(
   gl: WebGLRenderingContext,
   vertexShader: WebGLShader,
   fragmentShader: WebGLShader

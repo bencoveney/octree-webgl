@@ -1,9 +1,9 @@
 import "./index.scss";
-import { initialiseShaders, initialiseLineShaders } from "./render/shaders";
+import { initialiseShaders } from "./render/shaders";
 import { initDevTools, setDevToolsText } from "./debug/devTools";
 import { createViewport, resizeViewport } from "./render/canvas";
-import { model } from "./render/cubeModel";
-import { model as lineModel } from "./render/axisModel";
+import { model as cubeModel } from "./render/models/cubeModel";
+import { model as axisModel } from "./render/models/axisModel";
 import { render } from "./render/render";
 import * as Position from "./position";
 import * as Octree from "./octree";
@@ -16,13 +16,44 @@ import { getDebugMode } from "./debug/debugMode";
 function main() {
   const gl = createViewport();
   initDevTools();
-  const shaderProgramInfo = initialiseShaders(gl);
-  const lineShaderProgramInfo = initialiseLineShaders(gl);
-  ModelStore.storeModel("cube", model);
-  ModelStore.storeLineModel("axis", lineModel);
+  const shaders = initialiseShaders(gl);
 
-  let totalTime = 0;
+  ModelStore.storeModel("cube", cubeModel);
+  ModelStore.storeLineModel("axis", axisModel);
 
+  const world = initWorld();
+
+  gameLoop((deltaTimeMs, totalTimeMs) => {
+    const deltaTimeS = deltaTimeMs / 1000;
+    resizeViewport(gl);
+
+    world.sceneGraph.position.rotation[1] = -totalTimeMs / 2000;
+
+    render(gl, shaders, world);
+
+    setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
+debug: ${getDebugMode()} (press D to toggle)`);
+  });
+}
+
+function gameLoop(tick: (deltaTimeMs, totalTimeMs) => void) {
+  var lastTimeMs = 0;
+  let totalTimeMs = 0;
+
+  function doLoop(currentTimeMs) {
+    const deltaTimeMs = currentTimeMs - lastTimeMs;
+    lastTimeMs = currentTimeMs;
+    totalTimeMs += deltaTimeMs;
+    tick(deltaTimeMs, totalTimeMs);
+    requestAnimationFrame(doLoop);
+  }
+
+  requestAnimationFrame(doLoop);
+}
+
+window.addEventListener("load", main, false);
+
+function initWorld(): World.World {
   const treeSize = 3;
 
   const world = World.create(
@@ -57,32 +88,5 @@ function main() {
       SceneGraph.addChild(octreeNode, cubePosition, "cube");
     });
 
-  gameLoop(deltaTimeMs => {
-    const deltaTimeS = deltaTimeMs / 1000;
-    resizeViewport(gl);
-    totalTime += deltaTimeS;
-
-    world.sceneGraph.position.rotation[1] = -totalTime / 2;
-
-    render(gl, shaderProgramInfo, lineShaderProgramInfo, world);
-
-    setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
-cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}
-debug: ${getDebugMode()} (press D to toggle)`);
-  });
+  return world;
 }
-
-function gameLoop(tick: (deltaTimeMs) => void) {
-  var lastTimeMs = 0;
-
-  function doLoop(currentTimeMs) {
-    const deltaTimeMs = currentTimeMs - lastTimeMs;
-    lastTimeMs = currentTimeMs;
-    tick(deltaTimeMs);
-    requestAnimationFrame(doLoop);
-  }
-
-  requestAnimationFrame(doLoop);
-}
-
-window.addEventListener("load", main, false);

@@ -1,6 +1,6 @@
 import * as SceneGraph from "./sceneGraph";
-import { vec3 } from "gl-matrix";
 import * as Position from "./position";
+import { vec3 } from "gl-matrix";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;

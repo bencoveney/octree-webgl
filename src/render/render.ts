@@ -1,4 +1,4 @@
-import { ShaderProgramInfo } from "./shaders";
+import { ShaderProgramInfo, Shaders } from "./shaders";
 import { mat4, vec3 } from "gl-matrix";
 import { Position, toMatrix } from "../position";
 import { degToRad } from "../utils";
@@ -9,8 +9,7 @@ import { getDebugMode } from "../debug/debugMode";
 
 export function render(
   gl: WebGLRenderingContext,
-  programInfo: ShaderProgramInfo,
-  lineProgramInfo: ShaderProgramInfo,
+  shaders: Shaders,
   world: World
 ) {
   gl.enable(gl.CULL_FACE);
@@ -23,11 +22,11 @@ export function render(
 
   const { tri, line } = getRenderables(gl, world);
 
-  drawTriModels(gl, programInfo, tri, world);
+  drawTriModels(gl, shaders.tri, tri, world);
 
   gl.disable(gl.DEPTH_TEST);
 
-  drawLineModels(gl, lineProgramInfo, line);
+  drawLineModels(gl, shaders.line, line);
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {

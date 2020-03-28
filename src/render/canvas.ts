@@ -12,6 +12,7 @@ export function createViewport(): WebGLRenderingContext {
     powerPreference: "high-performance",
     antialias: true
   });
+
   if (gl === null) {
     throw "Unable to initialize WebGL. Your browser or machine may not support it.";
   }
