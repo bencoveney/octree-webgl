@@ -5,6 +5,7 @@ import { degToRad } from "../utils";
 import { World } from "../world";
 import * as SceneGraph from "../sceneGraph";
 import * as ModelStore from "./modelStore";
+import { getDebugMode } from "../debug/debugMode";
 
 export function render(
   gl: WebGLRenderingContext,
@@ -20,21 +21,13 @@ export function render(
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  drawModel(
-    gl,
-    programInfo,
-    ModelStore.getBuffers(gl, "cube", "tri") as ModelStore.ModelBuffers,
-    world
-  );
+  const { tri, line } = getRenderables(gl, world);
+
+  drawTriModels(gl, programInfo, tri, world);
 
   gl.disable(gl.DEPTH_TEST);
 
-  drawLineModel(
-    gl,
-    lineProgramInfo,
-    ModelStore.getBuffers(gl, "axis", "line") as ModelStore.LineModelBuffers,
-    world
-  );
+  drawLineModels(gl, lineProgramInfo, line);
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
@@ -101,10 +94,10 @@ function bindUniformVector(
   gl.uniform3fv(uniformLocation, vector);
 }
 
-function drawModel(
+function drawTriModels(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
-  buffers: ModelStore.ModelBuffers,
+  renderables: TriRenderables,
   world: World
 ) {
   gl.useProgram(programInfo.program);
@@ -114,42 +107,17 @@ function drawModel(
     programInfo.uniformLocations.ambientLightColor,
     world.ambientLightColor
   );
-
   bindUniformVector(
     gl,
     programInfo.uniformLocations.directionalLightColor,
     world.directionalLightColor
   );
-
   bindUniformVector(
     gl,
     programInfo.uniformLocations.directionalLightDirection,
     world.directionalLightDirection
   );
 
-  // Tell the GPU which values to insert into the shaders for position, color, normal.
-  bindAttributeBuffer(
-    gl,
-    buffers.position,
-    programInfo.attributeLocations.vertexPosition,
-    3
-  );
-
-  bindAttributeBuffer(
-    gl,
-    buffers.color,
-    programInfo.attributeLocations.vertexColor,
-    4
-  );
-
-  bindAttributeBuffer(
-    gl,
-    buffers.normal,
-    programInfo.attributeLocations.vertexNormal,
-    3
-  );
-
-  // Tell the GPU which matrices to use for projection, model-view and normals
   const projectionMatrix = createProjectionMatrix(gl);
   bindUniformMatrix(
     gl,
@@ -157,54 +125,57 @@ function drawModel(
     projectionMatrix
   );
 
-  walkSceneGraph(world, (node, modelViewMatrix) => {
-    if (node.thingToDraw !== "cube") {
-      return;
-    }
-
-    bindUniformMatrix(
+  Object.values(renderables).forEach(({ buffers, modelViews }) => {
+    // Tell the GPU which values to insert into the shaders for position, color, normal.
+    bindAttributeBuffer(
       gl,
-      programInfo.uniformLocations.modelViewMatrix,
-      modelViewMatrix
+      buffers.position,
+      programInfo.attributeLocations.vertexPosition,
+      3
     );
 
-    const normalMatrix = createNormalMatrix(modelViewMatrix);
-    bindUniformMatrix(
+    bindAttributeBuffer(
       gl,
-      programInfo.uniformLocations.normalMatrix,
-      normalMatrix
+      buffers.color,
+      programInfo.attributeLocations.vertexColor,
+      4
     );
 
-    // Tell the GPU which order to draw the vertices in.
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
-    gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
+    bindAttributeBuffer(
+      gl,
+      buffers.normal,
+      programInfo.attributeLocations.vertexNormal,
+      3
+    );
+
+    modelViews.forEach(modelViewMatrix => {
+      bindUniformMatrix(
+        gl,
+        programInfo.uniformLocations.modelViewMatrix,
+        modelViewMatrix
+      );
+
+      const normalMatrix = createNormalMatrix(modelViewMatrix);
+      bindUniformMatrix(
+        gl,
+        programInfo.uniformLocations.normalMatrix,
+        normalMatrix
+      );
+
+      // Tell the GPU which order to draw the vertices in.
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
+      gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
+    });
   });
 }
 
-function drawLineModel(
+function drawLineModels(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
-  buffers: ModelStore.LineModelBuffers,
-  world: World
+  renderables: LineRenderables
 ) {
   gl.useProgram(programInfo.program);
 
-  // Tell the GPU which values to insert into the shaders for position, color.
-  bindAttributeBuffer(
-    gl,
-    buffers.position,
-    programInfo.attributeLocations.vertexPosition,
-    3
-  );
-
-  bindAttributeBuffer(
-    gl,
-    buffers.color,
-    programInfo.attributeLocations.vertexColor,
-    4
-  );
-
-  // Tell the GPU which matrices to use for projection, model-view and normals
   const projectionMatrix = createProjectionMatrix(gl);
   bindUniformMatrix(
     gl,
@@ -212,23 +183,92 @@ function drawLineModel(
     projectionMatrix
   );
 
-  walkSceneGraph(world, (node, modelViewMatrix) => {
-    if (node.thingToDraw !== "axis") {
-      return;
-    }
-    bindUniformMatrix(
+  Object.values(renderables).forEach(({ buffers, modelViews }) => {
+    bindAttributeBuffer(
       gl,
-      programInfo.uniformLocations.modelViewMatrix,
-      modelViewMatrix
+      buffers.position,
+      programInfo.attributeLocations.vertexPosition,
+      3
     );
 
-    // Tell the GPU which order to draw the vertices in.
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
-    gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
+    bindAttributeBuffer(
+      gl,
+      buffers.color,
+      programInfo.attributeLocations.vertexColor,
+      4
+    );
+    modelViews.forEach(modelViewMatrix => {
+      bindUniformMatrix(
+        gl,
+        programInfo.uniformLocations.modelViewMatrix,
+        modelViewMatrix
+      );
+
+      // Tell the GPU which order to draw the vertices in.
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
+      gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
+    });
   });
 }
 
-function walkSceneGraph(world: World, callback: Function) {
+type TriRenderables = {
+  [modelName: string]: {
+    buffers: ModelStore.ModelBuffers;
+    modelViews: mat4[];
+  };
+};
+type LineRenderables = {
+  [modelName: string]: {
+    buffers: ModelStore.LineModelBuffers;
+    modelViews: mat4[];
+  };
+};
+
+type Renderables = {
+  tri: TriRenderables;
+  line: LineRenderables;
+};
+
+// Get all renderable objects in the world.
+// Group the output by model, so that we can avoid switching buffers too often later.
+function getRenderables(gl: WebGLRenderingContext, world: World): Renderables {
+  const result: Renderables = {
+    tri: {},
+    line: {}
+  };
+
+  const preferredModelKind: ModelStore.ModelKind = getDebugMode()
+    ? "line"
+    : "tri";
+
+  walkSceneGraph(world, ({ model }, modelView) => {
+    const buffers = ModelStore.getBuffers(gl, model, preferredModelKind);
+    if (buffers.kind === "line") {
+      if (!result.line[model]) {
+        result.line[model] = {
+          buffers: buffers,
+          modelViews: []
+        };
+      }
+      result.line[model].modelViews.push(modelView);
+    } else {
+      if (!result.tri[model]) {
+        result.tri[model] = {
+          buffers: buffers,
+          modelViews: []
+        };
+      }
+      result.tri[model].modelViews.push(modelView);
+    }
+  });
+
+  return result;
+}
+
+function walkSceneGraph(
+  world: World,
+  callback: (node: SceneGraph.SceneGraphNode, modelView: mat4) => void
+) {
   function walk(parentMatrix: mat4, childNode: SceneGraph.SceneGraphNode) {
     const childNodeMatrix = mat4.clone(parentMatrix);
     mat4.multiply(
@@ -236,7 +276,7 @@ function walkSceneGraph(world: World, callback: Function) {
       childNodeMatrix,
       toMatrix(childNode.position)
     );
-    if (childNode.thingToDraw) {
+    if (childNode.model) {
       callback(childNode, childNodeMatrix);
     }
     childNode.children.forEach(grandchild => walk(childNodeMatrix, grandchild));

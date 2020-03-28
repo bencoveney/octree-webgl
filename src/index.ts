@@ -1,6 +1,6 @@
 import "./index.scss";
 import { initialiseShaders, initialiseLineShaders } from "./render/shaders";
-import { initDevTools, setDevToolsText } from "./devTools";
+import { initDevTools, setDevToolsText } from "./debug/devTools";
 import { createViewport, resizeViewport } from "./render/canvas";
 import { model } from "./render/cubeModel";
 import { model as lineModel } from "./render/axisModel";
@@ -11,7 +11,7 @@ import * as World from "./world";
 import * as SceneGraph from "./sceneGraph";
 import * as ModelStore from "./render/modelStore";
 import { vec3 } from "gl-matrix";
-import { getDebugMode } from "./debugMode";
+import { getDebugMode } from "./debug/debugMode";
 
 function main() {
   const gl = createViewport();
@@ -39,7 +39,7 @@ function main() {
   const octreeNode = SceneGraph.addChild(
     world.sceneGraph,
     Position.init(),
-    "cube"
+    null
   );
 
   const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {

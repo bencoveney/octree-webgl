@@ -54,8 +54,6 @@ export function getBuffers(
       modelBufferStore.set(name, buffers);
       return buffers;
     }
-
-    throw new Error(`Cannot find model with name "${name}"`);
   }
 
   if (lineModelBufferStore.has(name)) {
@@ -77,10 +75,10 @@ export function getBuffers(
     return buffers;
   }
 
-  throw new Error(`Cannot find model with name "${name}"`);
+  throw new Error(`Cannot find any model with name "${name}"`);
 }
 
-export function createModelBuffers(
+function createModelBuffers(
   gl: WebGLRenderingContext,
   { position, color, index, normal }: ModelData
 ): ModelBuffers {
@@ -102,7 +100,7 @@ export function createModelBuffers(
   };
 }
 
-export function createLineModelBuffers(
+function createLineModelBuffers(
   gl: WebGLRenderingContext,
   { position, color, index }: LineModelData
 ): LineModelBuffers {
@@ -134,7 +132,7 @@ function createArrayBuffer(
   return buffer;
 }
 
-export function convertToLineModel({
+function convertToLineModel({
   position,
   color,
   index
@@ -153,8 +151,6 @@ export function convertToLineModel({
   return {
     position,
     color,
-    index: newIndex,
-    kind: "line",
-    count: newIndex.length
+    index: newIndex
   };
 }

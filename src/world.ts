@@ -15,7 +15,7 @@ export function create(
   ambientLightColor: vec3,
   directionalLightColor: vec3,
   directionalLightDirection: vec3
-) {
+): World {
   const worldSceneGraph = SceneGraph.init();
   const cameraNode = SceneGraph.addChild(worldSceneGraph, cameraPosition, null);
   return {
