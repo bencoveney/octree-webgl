@@ -13,6 +13,7 @@ import * as World from "./world";
 import * as SceneGraph from "./sceneGraph";
 import { vec3 } from "gl-matrix";
 import { createLineModel } from "./render/createLineModel";
+import { getDebugMode } from "./debugMode";
 
 function main() {
   const gl = createViewport();
@@ -63,7 +64,8 @@ function main() {
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
     setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
-cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
+cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}
+debug: ${getDebugMode()} (press D to toggle)`);
     resizeViewport(gl);
     totalTime += deltaTimeS;
 
