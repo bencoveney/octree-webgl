@@ -4,15 +4,13 @@ import { initDevTools, setDevToolsText } from "./devTools";
 import { createViewport, resizeViewport } from "./render/canvas";
 import { model } from "./render/cubeModel";
 import { model as lineModel } from "./render/axisModel";
-import { createModelBuffers } from "./render/model";
-import { createModelBuffers as createLineModelBuffers } from "./render/lineModel";
 import { render } from "./render/render";
 import * as Position from "./position";
 import * as Octree from "./octree";
 import * as World from "./world";
 import * as SceneGraph from "./sceneGraph";
+import * as ModelStore from "./render/modelStore";
 import { vec3 } from "gl-matrix";
-import { createLineModel } from "./render/createLineModel";
 import { getDebugMode } from "./debugMode";
 
 function main() {
@@ -20,10 +18,8 @@ function main() {
   initDevTools();
   const shaderProgramInfo = initialiseShaders(gl);
   const lineShaderProgramInfo = initialiseLineShaders(gl);
-  const buffers = createModelBuffers(gl, model);
-  const lineBuffers = createLineModelBuffers(gl, lineModel);
-  const lineModel2 = createLineModel(model);
-  const lineBuffers2 = createLineModelBuffers(gl, lineModel2);
+  ModelStore.storeModel("cube", model);
+  ModelStore.storeLineModel("axis", lineModel);
 
   let totalTime = 0;
 
@@ -71,15 +67,7 @@ debug: ${getDebugMode()} (press D to toggle)`);
 
     world.sceneGraph.position.rotation[1] = -totalTime / 2;
 
-    render(
-      gl,
-      shaderProgramInfo,
-      lineShaderProgramInfo,
-      buffers,
-      lineBuffers,
-      lineBuffers2,
-      world
-    );
+    render(gl, shaderProgramInfo, lineShaderProgramInfo, world);
   });
 }
 

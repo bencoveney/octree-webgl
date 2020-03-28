@@ -1,4 +1,4 @@
-import { LineModelData } from "./lineModel";
+import { LineModelData } from "./modelStore";
 
 const position = [
   // X

@@ -1,4 +1,4 @@
-import { ModelData } from "./model";
+import { ModelData } from "./modelStore";
 
 const position = [
   // Front face

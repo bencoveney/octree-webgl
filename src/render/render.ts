@@ -1,19 +1,15 @@
 import { ShaderProgramInfo } from "./shaders";
-import { ModelBuffers } from "./model";
 import { mat4, vec3 } from "gl-matrix";
 import { Position, toMatrix } from "../position";
 import { degToRad } from "../utils";
-import { LineModelBuffers } from "./lineModel";
 import { World } from "../world";
 import * as SceneGraph from "../sceneGraph";
+import * as ModelStore from "./modelStore";
 
 export function render(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   lineProgramInfo: ShaderProgramInfo,
-  buffers: ModelBuffers,
-  lineBuffers: LineModelBuffers,
-  lineBuffers2: LineModelBuffers,
   world: World
 ) {
   gl.enable(gl.CULL_FACE);
@@ -24,11 +20,21 @@ export function render(
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  drawModel(gl, programInfo, buffers, world);
+  drawModel(
+    gl,
+    programInfo,
+    ModelStore.getBuffers(gl, "cube", "tri") as ModelStore.ModelBuffers,
+    world
+  );
 
   gl.disable(gl.DEPTH_TEST);
 
-  drawLineModel(gl, lineProgramInfo, lineBuffers, world);
+  drawLineModel(
+    gl,
+    lineProgramInfo,
+    ModelStore.getBuffers(gl, "axis", "line") as ModelStore.LineModelBuffers,
+    world
+  );
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
@@ -98,7 +104,7 @@ function bindUniformVector(
 function drawModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
-  buffers: ModelBuffers,
+  buffers: ModelStore.ModelBuffers,
   world: World
 ) {
   gl.useProgram(programInfo.program);
@@ -178,7 +184,7 @@ function drawModel(
 function drawLineModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
-  buffers: LineModelBuffers,
+  buffers: ModelStore.LineModelBuffers,
   world: World
 ) {
   gl.useProgram(programInfo.program);
