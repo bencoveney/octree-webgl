@@ -17,7 +17,7 @@ export function create(
   directionalLightDirection: vec3
 ) {
   const worldSceneGraph = SceneGraph.init();
-  const cameraNode = SceneGraph.addChild(worldSceneGraph, cameraPosition);
+  const cameraNode = SceneGraph.addChild(worldSceneGraph, cameraPosition, null);
   return {
     sceneGraph: worldSceneGraph,
     camera: cameraNode,

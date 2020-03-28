@@ -10,6 +10,7 @@ import { render } from "./render/render";
 import * as Position from "./position";
 import * as Octree from "./octree";
 import * as World from "./world";
+import * as SceneGraph from "./sceneGraph";
 import { vec3 } from "gl-matrix";
 import { createLineModel } from "./render/createLineModel";
 
@@ -27,19 +28,6 @@ function main() {
 
   const treeSize = 3;
 
-  const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {
-    const halfSize = fullSize / 2;
-    const distance = vec3.distance(position, vec3.create());
-    return distance < halfSize;
-  });
-  const allOctreeCubes = Octree.flatten(octree);
-  const filteredOctreeCubes = allOctreeCubes.filter(leaf => leaf.value);
-  const cubePositions = filteredOctreeCubes.map(({ center, halfSize }) =>
-    Position.create(center[0], center[1], center[2], halfSize)
-  );
-
-  const axisPosition = Position.create(0, 0, 0, 1);
-
   const world = World.create(
     Position.create(0, 0, Math.pow(2, treeSize + 2), 1),
     vec3.fromValues(0.3, 0.3, 0.3),
@@ -48,6 +36,29 @@ function main() {
   );
 
   world.sceneGraph.position.rotation[0] = 0.4;
+
+  SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
+
+  const octreeNode = SceneGraph.addChild(
+    world.sceneGraph,
+    Position.init(),
+    "cube"
+  );
+
+  const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {
+    const halfSize = fullSize / 2;
+    const distance = vec3.distance(position, vec3.create());
+    return distance < halfSize;
+  });
+  const allOctreeCubes = Octree.flatten(octree);
+  const filteredOctreeCubes = allOctreeCubes.filter(leaf => leaf.value);
+  filteredOctreeCubes
+    .map(({ center, halfSize }) =>
+      Position.create(center[0], center[1], center[2], halfSize)
+    )
+    .forEach(cubePosition => {
+      SceneGraph.addChild(octreeNode, cubePosition, "cube");
+    });
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
@@ -65,8 +76,6 @@ cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
       buffers,
       lineBuffers,
       lineBuffers2,
-      cubePositions,
-      axisPosition,
       world
     );
   });

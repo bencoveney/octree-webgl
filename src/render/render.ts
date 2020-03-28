@@ -5,6 +5,7 @@ import { Position, toMatrix } from "../position";
 import { degToRad } from "../utils";
 import { LineModelBuffers } from "./lineModel";
 import { World } from "../world";
+import * as SceneGraph from "../sceneGraph";
 
 export function render(
   gl: WebGLRenderingContext,
@@ -13,26 +14,21 @@ export function render(
   buffers: ModelBuffers,
   lineBuffers: LineModelBuffers,
   lineBuffers2: LineModelBuffers,
-  cubePositions: Position[],
-  axisPosition: Position,
   world: World
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
 
-  // Clear the screen.
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  drawModel(gl, programInfo, buffers, cubePositions, world);
+  drawModel(gl, programInfo, buffers, world);
 
   gl.disable(gl.DEPTH_TEST);
 
-  drawLineModel(gl, lineProgramInfo, lineBuffers, [axisPosition], world);
-
-  drawLineModel(gl, lineProgramInfo, lineBuffers2, cubePositions, world);
+  drawLineModel(gl, lineProgramInfo, lineBuffers, world);
 }
 
 function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
@@ -41,7 +37,7 @@ function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
     (gl.canvas as HTMLCanvasElement).clientWidth /
     (gl.canvas as HTMLCanvasElement).clientHeight;
   const zNear = 0.1;
-  const zFar = 100.0;
+  const zFar = 100;
 
   const projectionMatrix = mat4.create();
   mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
@@ -103,7 +99,6 @@ function drawModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: ModelBuffers,
-  cubePositions: Position[],
   world: World
 ) {
   gl.useProgram(programInfo.program);
@@ -156,19 +151,10 @@ function drawModel(
     projectionMatrix
   );
 
-  const cameraMatrix = createCameraMatrix(world.camera.position);
-  const worldMatrix = toMatrix(world.sceneGraph.position);
-
-  cubePositions.forEach(position => {
-    const positionMatrix = toMatrix(position);
-
-    const modelViewMatrix = mat4.clone(cameraMatrix);
-
-    // Move world relative to camera
-    mat4.multiply(modelViewMatrix, modelViewMatrix, worldMatrix);
-
-    // Move cube relative to world
-    mat4.multiply(modelViewMatrix, modelViewMatrix, positionMatrix);
+  walkSceneGraph(world, (node, modelViewMatrix) => {
+    if (node.thingToDraw !== "cube") {
+      return;
+    }
 
     bindUniformMatrix(
       gl,
@@ -193,7 +179,6 @@ function drawLineModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: LineModelBuffers,
-  positions: Position[],
   world: World
 ) {
   gl.useProgram(programInfo.program);
@@ -221,20 +206,10 @@ function drawLineModel(
     projectionMatrix
   );
 
-  const cameraMatrix = createCameraMatrix(world.camera.position);
-  const worldMatrix = toMatrix(world.sceneGraph.position);
-
-  positions.forEach(position => {
-    const positionMatrix = toMatrix(position);
-
-    const modelViewMatrix = mat4.clone(cameraMatrix);
-
-    // Move world relative to camera
-    mat4.multiply(modelViewMatrix, modelViewMatrix, worldMatrix);
-
-    // Move cube relative to world
-    mat4.multiply(modelViewMatrix, modelViewMatrix, positionMatrix);
-
+  walkSceneGraph(world, (node, modelViewMatrix) => {
+    if (node.thingToDraw !== "axis") {
+      return;
+    }
     bindUniformMatrix(
       gl,
       programInfo.uniformLocations.modelViewMatrix,
@@ -245,4 +220,22 @@ function drawLineModel(
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
     gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
   });
+}
+
+function walkSceneGraph(world: World, callback: Function) {
+  function walk(parentMatrix: mat4, childNode: SceneGraph.SceneGraphNode) {
+    const childNodeMatrix = mat4.clone(parentMatrix);
+    mat4.multiply(
+      childNodeMatrix,
+      childNodeMatrix,
+      toMatrix(childNode.position)
+    );
+    if (childNode.thingToDraw) {
+      callback(childNode, childNodeMatrix);
+    }
+    childNode.children.forEach(grandchild => walk(childNodeMatrix, grandchild));
+  }
+
+  const cameraMatrix = createCameraMatrix(world.camera.position);
+  walk(cameraMatrix, world.sceneGraph);
 }
