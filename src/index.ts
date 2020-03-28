@@ -10,6 +10,7 @@ import { drawScene } from "./render/drawScene";
 import { createPosition } from "./position";
 import * as Octree from "./octree";
 import { vec3 } from "gl-matrix";
+import { createLineModel } from "./render/createLineModel";
 
 function main() {
   const gl = createViewport();
@@ -18,6 +19,8 @@ function main() {
   const lineShaderProgramInfo = initialiseLineShaders(gl);
   const buffers = createModelBuffers(gl, model);
   const lineBuffers = createLineModelBuffers(gl, lineModel);
+  const lineModel2 = createLineModel(model);
+  const lineBuffers2 = createLineModelBuffers(gl, lineModel2);
 
   let totalTime = 0;
 
@@ -60,6 +63,7 @@ cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
       lineShaderProgramInfo,
       buffers,
       lineBuffers,
+      lineBuffers2,
       cubePositions,
       worldPosition,
       cameraPosition,

@@ -2,6 +2,7 @@ type LineModel<T> = {
   position: T;
   color: T;
   index: T;
+  count: number;
 };
 
 export type LineModelData = LineModel<number[]>;
@@ -22,7 +23,8 @@ export function createModelBuffers(
       gl,
       gl.ELEMENT_ARRAY_BUFFER,
       new Uint16Array(index)
-    )
+    ),
+    count: index.length
   };
 }
 

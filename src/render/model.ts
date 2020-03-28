@@ -3,6 +3,7 @@ type Model<T> = {
   color: T;
   index: T;
   normal: T;
+  count: number;
 };
 
 export type ModelData = Model<number[]>;
@@ -24,7 +25,8 @@ export function createModelBuffers(
       gl.ELEMENT_ARRAY_BUFFER,
       new Uint16Array(index)
     ),
-    normal: createArrayBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(normal))
+    normal: createArrayBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(normal)),
+    count: index.length
   };
 }
 

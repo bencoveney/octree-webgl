@@ -11,6 +11,7 @@ export function drawScene(
   lineProgramInfo: ShaderProgramInfo,
   buffers: ModelBuffers,
   lineBuffers: LineModelBuffers,
+  lineBuffers2: LineModelBuffers,
   cubePositions: Position[],
   worldPosition: Position,
   cameraPosition: Position,
@@ -47,6 +48,15 @@ export function drawScene(
     lineProgramInfo,
     lineBuffers,
     axisPosition,
+    worldPosition,
+    cameraPosition
+  );
+
+  drawLineModel2(
+    gl,
+    lineProgramInfo,
+    lineBuffers2,
+    cubePositions,
     worldPosition,
     cameraPosition
   );
@@ -206,7 +216,7 @@ function drawModel(
 
     // Tell the GPU which order to draw the vertices in.
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
-    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
   });
 }
 
@@ -220,7 +230,7 @@ function drawLineModel(
 ) {
   gl.useProgram(programInfo.program);
 
-  // Tell the GPU which values to insert into the shaders for position, color, normal.
+  // Tell the GPU which values to insert into the shaders for position, color.
   bindAttributeBuffer(
     gl,
     buffers.position,
@@ -264,5 +274,64 @@ function drawLineModel(
 
   // Tell the GPU which order to draw the vertices in.
   gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
-  gl.drawElements(gl.LINES, 6, gl.UNSIGNED_SHORT, 0);
+  gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
+}
+
+function drawLineModel2(
+  gl: WebGLRenderingContext,
+  programInfo: ShaderProgramInfo,
+  buffers: LineModelBuffers,
+  cubePositions: Position[],
+  worldPosition: Position,
+  cameraPosition: Position
+) {
+  gl.useProgram(programInfo.program);
+
+  // Tell the GPU which values to insert into the shaders for position, color.
+  bindAttributeBuffer(
+    gl,
+    buffers.position,
+    programInfo.attributeLocations.vertexPosition,
+    3
+  );
+
+  bindAttributeBuffer(
+    gl,
+    buffers.color,
+    programInfo.attributeLocations.vertexColor,
+    4
+  );
+
+  // Tell the GPU which matrices to use for projection, model-view and normals
+  const projectionMatrix = createProjectionMatrix(gl);
+  bindUniformMatrix(
+    gl,
+    programInfo.uniformLocations.projectionMatrix,
+    projectionMatrix
+  );
+
+  const cameraMatrix = createCameraMatrix(cameraPosition);
+  const worldMatrix = createPositionMatrix(worldPosition);
+
+  cubePositions.forEach(position => {
+    const positionMatrix = createPositionMatrix(position);
+
+    const modelViewMatrix = mat4.clone(cameraMatrix);
+
+    // Move world relative to camera
+    mat4.multiply(modelViewMatrix, modelViewMatrix, worldMatrix);
+
+    // Move cube relative to world
+    mat4.multiply(modelViewMatrix, modelViewMatrix, positionMatrix);
+
+    bindUniformMatrix(
+      gl,
+      programInfo.uniformLocations.modelViewMatrix,
+      modelViewMatrix
+    );
+
+    // Tell the GPU which order to draw the vertices in.
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
+    gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
+  });
 }
