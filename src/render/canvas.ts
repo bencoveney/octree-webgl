@@ -27,7 +27,7 @@ export function resizeViewport(gl: WebGLRenderingContext) {
   if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
     canvas.width = displayWidth;
     canvas.height = displayHeight;
-  }
 
-  gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+    gl.viewport(0, 0, gl.drawingBufferWidth, gl.drawingBufferHeight);
+  }
 }

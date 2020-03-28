@@ -59,15 +59,16 @@ function main() {
 
   gameLoop(deltaTimeMs => {
     const deltaTimeS = deltaTimeMs / 1000;
-    setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
-cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}
-debug: ${getDebugMode()} (press D to toggle)`);
     resizeViewport(gl);
     totalTime += deltaTimeS;
 
     world.sceneGraph.position.rotation[1] = -totalTime / 2;
 
     render(gl, shaderProgramInfo, lineShaderProgramInfo, world);
+
+    setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
+cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}
+debug: ${getDebugMode()} (press D to toggle)`);
   });
 }
 

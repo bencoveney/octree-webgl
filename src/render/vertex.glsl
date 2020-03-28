@@ -11,12 +11,12 @@ uniform vec3 uDirectionalLightColor;
 uniform vec3 uDirectionalLightDirection;
 
 varying lowp vec4 vColor;
-varying highp vec3 vLighting;
+varying lowp vec3 vLighting;
 
 void main(void) {
 	gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
 	vColor = aVertexColor;
-	highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-	highp float directional = max(dot(transformedNormal.xyz, normalize(uDirectionalLightDirection)), 0.0);
+	lowp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+	lowp float directional = max(dot(transformedNormal.xyz, normalize(uDirectionalLightDirection)), 0.0);
 	vLighting = uAmbientLightColor + (uDirectionalLightColor * directional);
 }
