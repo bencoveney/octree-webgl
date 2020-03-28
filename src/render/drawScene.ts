@@ -47,12 +47,12 @@ export function drawScene(
     gl,
     lineProgramInfo,
     lineBuffers,
-    axisPosition,
+    [axisPosition],
     worldPosition,
     cameraPosition
   );
 
-  drawLineModel2(
+  drawLineModel(
     gl,
     lineProgramInfo,
     lineBuffers2,
@@ -224,7 +224,7 @@ function drawLineModel(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   buffers: LineModelBuffers,
-  position: Position,
+  positions: Position[],
   worldPosition: Position,
   cameraPosition: Position
 ) {
@@ -256,64 +256,7 @@ function drawLineModel(
   const cameraMatrix = createCameraMatrix(cameraPosition);
   const worldMatrix = createPositionMatrix(worldPosition);
 
-  const positionMatrix = createPositionMatrix(position);
-
-  const modelViewMatrix = mat4.clone(cameraMatrix);
-
-  // Move world relative to camera
-  mat4.multiply(modelViewMatrix, modelViewMatrix, worldMatrix);
-
-  // Move cube relative to world
-  mat4.multiply(modelViewMatrix, modelViewMatrix, positionMatrix);
-
-  bindUniformMatrix(
-    gl,
-    programInfo.uniformLocations.modelViewMatrix,
-    modelViewMatrix
-  );
-
-  // Tell the GPU which order to draw the vertices in.
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
-  gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
-}
-
-function drawLineModel2(
-  gl: WebGLRenderingContext,
-  programInfo: ShaderProgramInfo,
-  buffers: LineModelBuffers,
-  cubePositions: Position[],
-  worldPosition: Position,
-  cameraPosition: Position
-) {
-  gl.useProgram(programInfo.program);
-
-  // Tell the GPU which values to insert into the shaders for position, color.
-  bindAttributeBuffer(
-    gl,
-    buffers.position,
-    programInfo.attributeLocations.vertexPosition,
-    3
-  );
-
-  bindAttributeBuffer(
-    gl,
-    buffers.color,
-    programInfo.attributeLocations.vertexColor,
-    4
-  );
-
-  // Tell the GPU which matrices to use for projection, model-view and normals
-  const projectionMatrix = createProjectionMatrix(gl);
-  bindUniformMatrix(
-    gl,
-    programInfo.uniformLocations.projectionMatrix,
-    projectionMatrix
-  );
-
-  const cameraMatrix = createCameraMatrix(cameraPosition);
-  const worldMatrix = createPositionMatrix(worldPosition);
-
-  cubePositions.forEach(position => {
+  positions.forEach(position => {
     const positionMatrix = createPositionMatrix(position);
 
     const modelViewMatrix = mat4.clone(cameraMatrix);
