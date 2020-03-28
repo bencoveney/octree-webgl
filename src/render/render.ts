@@ -5,7 +5,7 @@ import { Position, createPositionMatrix } from "../position";
 import { degToRad } from "../utils";
 import { LineModelBuffers } from "./lineModel";
 
-export function drawScene(
+export function render(
   gl: WebGLRenderingContext,
   programInfo: ShaderProgramInfo,
   lineProgramInfo: ShaderProgramInfo,

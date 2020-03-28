@@ -6,7 +6,7 @@ import { model } from "./render/cubeModel";
 import { model as lineModel } from "./render/axisModel";
 import { createModelBuffers } from "./render/model";
 import { createModelBuffers as createLineModelBuffers } from "./render/lineModel";
-import { drawScene } from "./render/drawScene";
+import { render } from "./render/render";
 import { createPosition } from "./position";
 import * as Octree from "./octree";
 import { vec3 } from "gl-matrix";
@@ -57,7 +57,7 @@ cubes: ${filteredOctreeCubes.length}/${allOctreeCubes.length}`);
 
     worldPosition.rotation[1] = -totalTime / 2;
 
-    drawScene(
+    render(
       gl,
       shaderProgramInfo,
       lineShaderProgramInfo,
