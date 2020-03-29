@@ -1,14 +1,13 @@
 import "./canvas.scss";
 
 let canvas: HTMLCanvasElement;
-let gl: WebGLRenderingContext;
 
 export function createViewport(): WebGLRenderingContext {
   canvas = document.createElement("canvas");
   canvas.setAttribute("id", "canvas");
   document.body.appendChild(canvas);
 
-  gl = canvas.getContext("webgl", {
+  const gl = canvas.getContext("webgl", {
     powerPreference: "high-performance",
     antialias: true
   });

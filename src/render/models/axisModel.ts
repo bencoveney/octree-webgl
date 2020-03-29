@@ -32,7 +32,7 @@ const faceColors = [
   [0.0, 0.0, 1.0, 1.0] // z: blue
 ];
 
-var color = [];
+var color: number[] = [];
 
 for (var j = 0; j < faceColors.length; ++j) {
   const c = faceColors[j];

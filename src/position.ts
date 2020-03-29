@@ -3,7 +3,7 @@ import { vec3, mat4 } from "gl-matrix";
 export interface Position {
   position: vec3;
   rotation: vec3;
-  scale;
+  scale: number;
 }
 
 export function init(): Position {
@@ -14,7 +14,12 @@ export function init(): Position {
   };
 }
 
-export function create(x, y, z, scale): Position {
+export function create(
+  x: number,
+  y: number,
+  z: number,
+  scale: number
+): Position {
   return {
     position: vec3.fromValues(x, y, z),
     rotation: vec3.create(),

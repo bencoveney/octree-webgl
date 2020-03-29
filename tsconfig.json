@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
-    "target": "ESNext",
-    "module": "ESNext",
+    "target": "ESNEXT",
+    "module": "ESNEXT",
     "moduleResolution": "node",
     "strict": true,
     "strictNullChecks": true,
@@ -9,7 +9,5 @@
     "forceConsistentCasingInFileNames": true,
     "skipLibCheck": true
   },
-  "include": [
-    "src/**/*.tsx?"
-  ]
+  "include": ["src/**/*.ts"]
 }

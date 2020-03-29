@@ -46,31 +46,37 @@ export function getBuffers(
 ): ModelBuffers | LineModelBuffers {
   if (preferred === "tri") {
     if (modelBufferStore.has(name)) {
-      return modelBufferStore.get(name);
+      return modelBufferStore.get(name) as ModelBuffers;
     }
 
     if (modelDataStore.has(name)) {
-      const buffers = createModelBuffers(gl, modelDataStore.get(name));
+      const buffers = createModelBuffers(
+        gl,
+        modelDataStore.get(name) as ModelData
+      );
       modelBufferStore.set(name, buffers);
       return buffers;
     }
   }
 
   if (lineModelBufferStore.has(name)) {
-    return lineModelBufferStore.get(name);
+    return lineModelBufferStore.get(name) as LineModelBuffers;
   }
 
   if (lineModelDataStore.has(name)) {
-    const buffers = createLineModelBuffers(gl, lineModelDataStore.get(name));
+    const buffers = createLineModelBuffers(
+      gl,
+      lineModelDataStore.get(name) as LineModelData
+    );
     lineModelBufferStore.set(name, buffers);
     return buffers;
   }
 
   // If we haven't got a line model, try and create one from the tri model.
   if (modelDataStore.has(name)) {
-    const lineModel = convertToLineModel(modelDataStore.get(name));
+    const lineModel = convertToLineModel(modelDataStore.get(name) as ModelData);
     lineModelDataStore.set(name, lineModel);
-    const buffers = createLineModelBuffers(gl, lineModelDataStore.get(name));
+    const buffers = createLineModelBuffers(gl, lineModel);
     lineModelBufferStore.set(name, buffers);
     return buffers;
   }
