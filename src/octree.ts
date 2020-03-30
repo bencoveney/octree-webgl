@@ -68,81 +68,81 @@ export function create<T>(
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] - nextHalfSize,
           center[1] - nextHalfSize,
           center[2] - nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] + nextHalfSize,
           center[1] - nextHalfSize,
           center[2] - nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] - nextHalfSize,
           center[1] + nextHalfSize,
           center[2] - nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] + nextHalfSize,
           center[1] + nextHalfSize,
           center[2] - nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] - nextHalfSize,
           center[1] - nextHalfSize,
           center[2] + nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] + nextHalfSize,
           center[1] - nextHalfSize,
           center[2] + nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] - nextHalfSize,
           center[1] + nextHalfSize,
           center[2] + nextHalfSize
-        ),
+        ],
         nextHalfSize
       ),
       createNode(
         innerNode,
         nextDepth,
-        vec3.fromValues(
+        [
           center[0] + nextHalfSize,
           center[1] + nextHalfSize,
           center[2] + nextHalfSize
-        ),
+        ],
         nextHalfSize
       )
     );
@@ -151,7 +151,7 @@ export function create<T>(
   }
 
   const firstHalfSize = firstSize / 2;
-  const firstCenter = vec3.fromValues(0, 0, 0);
+  const firstCenter: vec3 = [0, 0, 0];
 
   return createNode(null, depth, firstCenter, firstHalfSize);
 }
@@ -432,14 +432,18 @@ export function lookupToMesh<T>(
     }
   }
 
-  // X faces
+  // X faces. X = layer, Y = row, Z = column
   runDimension(
     (layer, row, column) => {
-      try {
-        return (lookup as any)["" + layer]["" + row]["" + column];
-      } catch (e) {
+      const first = (lookup as any)["" + layer];
+      if (!first) {
         return null;
       }
+      const second = first["" + row];
+      if (!second) {
+        return null;
+      }
+      return second["" + column] || null;
     },
     (layer, row, column, width, height, front, color) => {
       const prevIndex = result.position.length / 3;
@@ -468,14 +472,9 @@ export function lookupToMesh<T>(
         highZ
       );
 
-      result.color = result.color
-        .concat(
-          Array.from(color) as number[],
-          Array.from(color) as number[],
-          Array.from(color) as number[],
-          Array.from(color) as number[]
-        )
-        .flat();
+      for (let colorIndex = 0; colorIndex < 4; colorIndex++) {
+        result.color.push(color[0], color[1], color[2], color[3]);
+      }
 
       const xNormal = front ? 1 : -1;
       result.normal.push(
@@ -518,11 +517,15 @@ export function lookupToMesh<T>(
   // Y faces. Y = layer, X = row, Z = column
   runDimension(
     (layer, row, column) => {
-      try {
-        return (lookup as any)["" + row]["" + layer]["" + column];
-      } catch (e) {
+      const first = (lookup as any)["" + row];
+      if (!first) {
         return null;
       }
+      const second = first["" + layer];
+      if (!second) {
+        return null;
+      }
+      return second["" + column] || null;
     },
     (layer, row, column, width, height, front, color) => {
       const prevIndex = result.position.length / 3;
@@ -551,14 +554,9 @@ export function lookupToMesh<T>(
         highZ
       );
 
-      result.color = result.color
-        .concat(
-          Array.from(color) as number[],
-          Array.from(color) as number[],
-          Array.from(color) as number[],
-          Array.from(color) as number[]
-        )
-        .flat();
+      for (let colorIndex = 0; colorIndex < 4; colorIndex++) {
+        result.color.push(color[0], color[1], color[2], color[3]);
+      }
 
       const yNormal = front ? 1 : -1;
       result.normal.push(
@@ -601,11 +599,15 @@ export function lookupToMesh<T>(
   // Z faces. Z = layer, X = row, Y = column
   runDimension(
     (layer, row, column) => {
-      try {
-        return (lookup as any)["" + row]["" + layer]["" + column];
-      } catch (e) {
+      const first = (lookup as any)["" + row];
+      if (!first) {
         return null;
       }
+      const second = first["" + layer];
+      if (!second) {
+        return null;
+      }
+      return second["" + column] || null;
     },
     (layer, row, column, width, height, front, color) => {
       const prevIndex = result.position.length / 3;
@@ -634,14 +636,9 @@ export function lookupToMesh<T>(
         z
       );
 
-      result.color = result.color
-        .concat(
-          Array.from(color) as number[],
-          Array.from(color) as number[],
-          Array.from(color) as number[],
-          Array.from(color) as number[]
-        )
-        .flat();
+      for (let colorIndex = 0; colorIndex < 4; colorIndex++) {
+        result.color.push(color[0], color[1], color[2], color[3]);
+      }
 
       const zNormal = front ? 1 : -1;
       result.normal.push(

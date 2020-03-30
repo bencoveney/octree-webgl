@@ -8,8 +8,8 @@ export interface Position {
 
 export function init(): Position {
   return {
-    position: vec3.create(),
-    rotation: vec3.create(),
+    position: [0, 0, 0],
+    rotation: [0, 0, 0],
     scale: 1
   };
 }
@@ -21,8 +21,8 @@ export function create(
   scale: number
 ): Position {
   return {
-    position: vec3.fromValues(x, y, z),
-    rotation: vec3.create(),
+    position: [x, y, z],
+    rotation: [0, 0, 0],
     scale
   };
 }
@@ -43,7 +43,7 @@ export function toMatrix({ position, rotation, scale }: Position): mat4 {
   }
 
   if (scale) {
-    mat4.scale(matrix, matrix, vec3.fromValues(scale, scale, scale));
+    mat4.scale(matrix, matrix, [scale, scale, scale]);
   }
 
   return matrix;

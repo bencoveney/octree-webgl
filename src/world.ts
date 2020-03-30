@@ -30,12 +30,12 @@ export function create(
 }
 
 export function setUpWorld(): World {
-  const treeSize = 4;
+  const treeSize = 6;
   const world = create(
     Position.create(0, 0, Math.pow(2, treeSize) + treeSize * 3, 1),
-    vec3.fromValues(0.3, 0.3, 0.3),
-    vec3.fromValues(1, 1, 1),
-    vec3.fromValues(0.85, 0.8, 0.75)
+    [0.3, 0.3, 0.3],
+    [1, 1, 1],
+    [0.85, 0.8, 0.75]
   );
 
   world.sceneGraph.position.rotation[0] = 0.4;
@@ -44,12 +44,12 @@ export function setUpWorld(): World {
 
   const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {
     const halfSize = fullSize / 2;
-    const distance = vec3.distance(position, vec3.create());
+    const distance = vec3.distance(position, [0, 0, 0]);
     return distance < halfSize;
   });
   const lookup = Octree.createLookup(octree);
   const faces = Octree.lookupToMesh(lookup, leaf =>
-    leaf.value ? vec4.fromValues(1, 1, 1, 1) : null
+    leaf.value ? [1, 1, 1, 1] : null
   );
   ModelStore.storeModel("cubegen", faces);
   SceneGraph.addChild(world.sceneGraph, Position.init(), "cubegen");
