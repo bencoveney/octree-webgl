@@ -131,8 +131,13 @@ function createArrayBuffer(
   gl: WebGLRenderingContext,
   target: number,
   values: BufferSource
-) {
+): WebGLBuffer {
   const buffer = gl.createBuffer();
+
+  if (buffer == null) {
+    throw new Error("Unable to create buffer");
+  }
+
   gl.bindBuffer(target, buffer);
   gl.bufferData(target, values, gl.STATIC_DRAW);
   return buffer;

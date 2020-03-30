@@ -95,9 +95,9 @@ const faceColors = [
   [1.0, 0.0, 1.0, 1.0] // Left face: purple
 ];
 
-var color: number[] = [];
+let color: number[] = [];
 
-for (var j = 0; j < faceColors.length; ++j) {
+for (let j = 0; j < faceColors.length; ++j) {
   const c = faceColors[j];
 
   color = color.concat(c, c, c, c);

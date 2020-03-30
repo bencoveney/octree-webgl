@@ -33,7 +33,7 @@ debug: ${getDebugMode()} (press D to toggle)`);
 }
 
 function gameLoop(tick: (deltaTimeMs: number, totalTimeMs: number) => void) {
-  var lastTimeMs = 0;
+  let lastTimeMs = 0;
   let totalTimeMs = 0;
 
   function doLoop(currentTimeMs: number) {

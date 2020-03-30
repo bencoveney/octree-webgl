@@ -1,4 +1,4 @@
 declare module "*.glsl" {
-	export const source: string;
-	export default source;
+  export const source: string;
+  export default source;
 }

@@ -9,7 +9,7 @@ export type Shaders = {
   line: ShaderProgramInfo;
 };
 
-export function initialiseShaders(gl): Shaders {
+export function initialiseShaders(gl: WebGLRenderingContext): Shaders {
   return { tri: initialiseTriShaders(gl), line: initialiseLineShaders(gl) };
 }
 
@@ -26,21 +26,29 @@ function initialiseTriShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
       vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal")
     },
     uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(
+      projectionMatrix: getUniformLocation(
+        gl,
         shaderProgram,
         "uProjectionMatrix"
       ),
-      modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix"),
-      normalMatrix: gl.getUniformLocation(shaderProgram, "uNormalMatrix"),
-      ambientLightColor: gl.getUniformLocation(
+      modelViewMatrix: getUniformLocation(
+        gl,
+        shaderProgram,
+        "uModelViewMatrix"
+      ),
+      normalMatrix: getUniformLocation(gl, shaderProgram, "uNormalMatrix"),
+      ambientLightColor: getUniformLocation(
+        gl,
         shaderProgram,
         "uAmbientLightColor"
       ),
-      directionalLightColor: gl.getUniformLocation(
+      directionalLightColor: getUniformLocation(
+        gl,
         shaderProgram,
         "uDirectionalLightColor"
       ),
-      directionalLightDirection: gl.getUniformLocation(
+      directionalLightDirection: getUniformLocation(
+        gl,
         shaderProgram,
         "uDirectionalLightDirection"
       )
@@ -60,11 +68,12 @@ function initialiseLineShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
       vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor")
     },
     uniformLocations: {
-      projectionMatrix: gl.getUniformLocation(
+      projectionMatrix: getUniformLocation(
+        gl,
         shaderProgram,
         "uProjectionMatrix"
       ),
-      modelViewMatrix: gl.getUniformLocation(shaderProgram, "uModelViewMatrix")
+      modelViewMatrix: getUniformLocation(gl, shaderProgram, "uModelViewMatrix")
     }
   };
 }
@@ -75,6 +84,10 @@ function createShader(
   shaderType: number
 ): WebGLShader {
   const shader = gl.createShader(shaderType);
+
+  if (shader === null) {
+    throw new Error("Unable to create shader");
+  }
 
   const shaderSource = require(`./shaders/${shaderName}.glsl`);
   gl.shaderSource(shader, shaderSource);
@@ -95,17 +108,35 @@ function createShaderProgram(
   vertexShader: WebGLShader,
   fragmentShader: WebGLShader
 ): WebGLProgram {
-  var program = gl.createProgram();
+  const program = gl.createProgram();
+  if (program === null) {
+    throw new Error("Unable to create program");
+  }
+
   gl.attachShader(program, vertexShader);
   gl.attachShader(program, fragmentShader);
   gl.linkProgram(program);
   gl.validateProgram(program);
 
-  var success = gl.getProgramParameter(program, gl.LINK_STATUS);
+  const success = gl.getProgramParameter(program, gl.LINK_STATUS);
   if (!success) {
     gl.deleteProgram(program);
-    throw new Error("program failed to link: " + gl.getProgramInfoLog(program));
+    throw new Error("Program failed to link: " + gl.getProgramInfoLog(program));
   }
 
   return program;
+}
+
+function getUniformLocation(
+  gl: WebGLRenderingContext,
+  shaderProgram: WebGLProgram,
+  name: string
+) {
+  const location = gl.getUniformLocation(shaderProgram, name);
+
+  if (location === null) {
+    throw new Error(`Unable to find uniform ${name}`);
+  }
+
+  return location;
 }

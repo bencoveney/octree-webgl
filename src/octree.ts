@@ -681,7 +681,5 @@ export function lookupToMesh<T>(
     }
   );
 
-  console.log(result);
-
   return result;
 }

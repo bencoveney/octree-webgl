@@ -20,9 +20,9 @@ export function createViewport(): WebGLRenderingContext {
 }
 
 export function resizeViewport(gl: WebGLRenderingContext) {
-  var realToCSSPixels = window.devicePixelRatio;
-  var displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels);
-  var displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
+  const realToCSSPixels = window.devicePixelRatio;
+  const displayWidth = Math.floor(canvas.clientWidth * realToCSSPixels);
+  const displayHeight = Math.floor(canvas.clientHeight * realToCSSPixels);
 
   if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
     canvas.width = displayWidth;

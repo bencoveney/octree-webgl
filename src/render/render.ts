@@ -266,7 +266,10 @@ function getRenderables(gl: WebGLRenderingContext, world: World): Renderables {
 
 function walkSceneGraph(
   world: World,
-  callback: (node: SceneGraph.SceneGraphNode, modelView: mat4) => void
+  callback: (
+    node: SceneGraph.SceneGraphNode & { model: string },
+    modelView: mat4
+  ) => void
 ) {
   function walk(parentMatrix: mat4, childNode: SceneGraph.SceneGraphNode) {
     const childNodeMatrix = mat4.clone(parentMatrix);
@@ -276,7 +279,10 @@ function walkSceneGraph(
       toMatrix(childNode.position)
     );
     if (childNode.model) {
-      callback(childNode, childNodeMatrix);
+      callback(
+        childNode as SceneGraph.SceneGraphNode & { model: string },
+        childNodeMatrix
+      );
     }
     childNode.children.forEach(grandchild => walk(childNodeMatrix, grandchild));
   }

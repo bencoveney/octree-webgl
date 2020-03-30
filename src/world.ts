@@ -30,11 +30,9 @@ export function create(
 }
 
 export function setUpWorld(): World {
-  const treeSize = 3;
-  const offset = Math.pow(2, treeSize) / 2 + 1;
-
+  const treeSize = 4;
   const world = create(
-    Position.create(0, 0, Math.pow(2, treeSize + 2), 1),
+    Position.create(0, 0, Math.pow(2, treeSize) + treeSize * 3, 1),
     vec3.fromValues(0.3, 0.3, 0.3),
     vec3.fromValues(1, 1, 1),
     vec3.fromValues(0.85, 0.8, 0.75)
@@ -44,37 +42,17 @@ export function setUpWorld(): World {
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
 
-  const octreeNode = SceneGraph.addChild(
-    world.sceneGraph,
-    Position.create(-offset, 0, 0, 1),
-    null
-  );
-
   const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {
     const halfSize = fullSize / 2;
     const distance = vec3.distance(position, vec3.create());
     return distance < halfSize;
   });
-  const allOctreeCubes = Octree.flatten(octree);
-  const filteredOctreeCubes = allOctreeCubes.filter(leaf => leaf.value);
-  filteredOctreeCubes
-    .map(({ center, halfSize }) =>
-      Position.create(center[0], center[1], center[2], halfSize)
-    )
-    .forEach(cubePosition => {
-      SceneGraph.addChild(octreeNode, cubePosition, "cube");
-    });
-
   const lookup = Octree.createLookup(octree);
   const faces = Octree.lookupToMesh(lookup, leaf =>
     leaf.value ? vec4.fromValues(1, 1, 1, 1) : null
   );
   ModelStore.storeModel("cubegen", faces);
-  SceneGraph.addChild(
-    world.sceneGraph,
-    Position.create(offset, 0, 0, 1),
-    "cubegen"
-  );
+  SceneGraph.addChild(world.sceneGraph, Position.init(), "cubegen");
 
   return world;
 }
