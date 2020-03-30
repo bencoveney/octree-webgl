@@ -1,7 +1,7 @@
 import * as Position from "./position";
 import * as Octree from "./octree";
 import * as SceneGraph from "./sceneGraph";
-import { vec3, vec4 } from "gl-matrix";
+import { vec3 } from "gl-matrix";
 import * as ModelStore from "./render/modelStore";
 
 export type World = {

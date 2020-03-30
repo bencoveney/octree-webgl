@@ -7,7 +7,9 @@
     "strictNullChecks": true,
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true
   },
   "include": ["src/**/*.ts", "src/glsl.d.ts"]
 }
