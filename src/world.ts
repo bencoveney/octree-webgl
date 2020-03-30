@@ -30,9 +30,12 @@ export function create(
 }
 
 export function setUpWorld(): World {
-  const treeSize = 6;
+  const octreeDepth = 6;
+  const octreeSize = Math.pow(2, octreeDepth);
+  const octreeHalfSize = octreeSize / 2;
+
   const world = create(
-    Position.create(0, 0, Math.pow(2, treeSize) + treeSize * 3, 1),
+    Position.create(0, 0, octreeSize + octreeDepth * 3, 1),
     [0.3, 0.3, 0.3],
     [1, 1, 1],
     [0.85, 0.8, 0.75]
@@ -42,12 +45,15 @@ export function setUpWorld(): World {
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
 
-  const octree = Octree.create<boolean>(treeSize, (position, fullSize) => {
-    const halfSize = fullSize / 2;
-    const distance = vec3.distance(position, [0, 0, 0]);
-    return distance < halfSize;
+  const octree = Octree.create<boolean>(octreeDepth, position => {
+    const distance = vec3.distance(position, [
+      octreeHalfSize,
+      octreeHalfSize,
+      octreeHalfSize
+    ]);
+    return distance < octreeHalfSize;
   });
-  const lookup = Octree.createLookup(octree);
+  const lookup = Octree.createLookup(octree, octreeSize);
   const faces = Octree.lookupToMesh(lookup, leaf =>
     leaf.value ? [1, 1, 1, 1] : null
   );

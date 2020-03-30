@@ -16,9 +16,11 @@
   },
   "homepage": "https://github.com/bencoveney/octree-webgl#readme",
   "devDependencies": {
+    "@types/ndarray": "^1.0.7",
     "common-config-webpack-plugin": "^1.4.0",
     "gl-matrix": "^3.2.1",
     "html-webpack-plugin": "^3.2.0",
+    "ndarray": "^1.0.19",
     "scss-config-webpack-plugin": "^2.0.0",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",

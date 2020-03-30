@@ -1,5 +1,6 @@
 import { vec3, vec4 } from "gl-matrix";
 import { ModelData } from "./render/modelStore";
+import ndarray from "ndarray";
 
 type Children<T> = [
   Node<T>,
@@ -32,7 +33,7 @@ type Node<T> = InnerNode<T> | LeafNode<T>;
 
 export function create<T>(
   depth: number,
-  callback: (center: vec3, size: number) => T
+  callback: (center: vec3) => T
 ): Node<T> {
   const firstSize = Math.pow(2, depth);
 
@@ -48,7 +49,7 @@ export function create<T>(
         center,
         halfSize,
         isLeaf: true,
-        value: callback(center, firstSize)
+        value: callback(center)
       };
       return leaf;
     }
@@ -151,17 +152,9 @@ export function create<T>(
   }
 
   const firstHalfSize = firstSize / 2;
-  const firstCenter: vec3 = [0, 0, 0];
+  const firstCenter: vec3 = [firstHalfSize, firstHalfSize, firstHalfSize];
 
   return createNode(null, depth, firstCenter, firstHalfSize);
-}
-
-export function flatten<T>(octree: Node<T>): LeafNode<T>[] {
-  if (octree.isLeaf) {
-    return [octree];
-  } else {
-    return octree.children.map(flatten).flat();
-  }
 }
 
 export function forEachLeaf<T>(
@@ -175,39 +168,29 @@ export function forEachLeaf<T>(
   }
 }
 
-type Lookup<T> = {
-  [xPosition: number]: {
-    [yPosition: number]: {
-      [zPosition: number]: T;
-    };
-  };
-};
-export function createLookup<T>(octree: Node<T>): Lookup<LeafNode<T>> {
-  const result: Lookup<LeafNode<T>> = {};
-  forEachLeaf(octree, leaf => {
-    const x = leaf.center[0];
-    if (!result[x]) {
-      result[x] = {};
-    }
-    const xLayer = result[x];
-
-    const y = leaf.center[1];
-    if (!xLayer[y]) {
-      xLayer[y] = {};
-    }
-    const yLayer = xLayer[y];
-
-    const z = leaf.center[2];
-    yLayer[z] = leaf;
-  });
+export function createLookup<T>(
+  octree: Node<T>,
+  size: number
+): ndarray<LeafNode<T>> {
+  const result = ndarray<LeafNode<T>>(
+    new Array<LeafNode<T>>(size * size * size),
+    [size, size, size]
+  );
+  forEachLeaf(octree, leaf =>
+    result.set(
+      leaf.center[0] - leaf.halfSize,
+      leaf.center[1] - leaf.halfSize,
+      leaf.center[2] - leaf.halfSize,
+      leaf as any
+    )
+  );
   return result;
 }
 
 type Color = vec4 | null;
-type ColorMap = Color[][];
 
 export function lookupToMesh<T>(
-  lookup: Lookup<LeafNode<T>>,
+  lookup: ndarray<LeafNode<T>>,
   getleafColor: (leaf: LeafNode<T>) => Color
 ): ModelData {
   const result: ModelData = {
@@ -216,14 +199,8 @@ export function lookupToMesh<T>(
     index: [],
     normal: []
   };
-
-  // Assumptions: Keys are uniform, numeric and the same in all dimensions.
-  const cleanKeys = Object.keys(lookup)
-    .map(key => parseFloat(key))
-    .sort((a, b) => a - b);
-
-  // Grab the halfSize from the first leaf voxel we can find, they should all be the same.
-  const halfSize = lookup[cleanKeys[0]][cleanKeys[0]][cleanKeys[0]].halfSize;
+  const size = lookup.shape[0];
+  const halfSize = size / 2;
 
   function runDimension(
     lookupLeaf: (
@@ -242,17 +219,17 @@ export function lookupToMesh<T>(
     ) => void
   ) {
     // Iterate through layers in the main dimension.
-    for (const layer of cleanKeys) {
+    for (let layer = 0; layer < size; layer++) {
       // Prepare a map to hold color information for both "sides" of this layer of the main dimension.
       const colorMap1: Color[][] = [];
       const colorMap2: Color[][] = [];
       // Iterate through rows and columns inside the layer.
-      for (const row of cleanKeys) {
+      for (let row = 0; row < size; row++) {
         const mapRow1: Color[] = [];
         colorMap1.push(mapRow1);
         const mapRow2: Color[] = [];
         colorMap2.push(mapRow2);
-        for (const column of cleanKeys) {
+        for (let column = 0; column < size; column++) {
           let color1: Color = null;
           let color2: Color = null;
           // Find the colour of the specific voxel.
@@ -291,9 +268,6 @@ export function lookupToMesh<T>(
       }
 
       // Greedy meshing (try to create as few polys as possible for each face):
-
-      // Assume both sides of the map are the same length
-      const size = colorMap1.length;
 
       // Loop through the colour map for this layer of the dimension.
       for (let row = 0; row < size; row++) {
@@ -356,15 +330,7 @@ export function lookupToMesh<T>(
               }
             }
 
-            addFace(
-              layer,
-              cleanKeys[row],
-              cleanKeys[column],
-              width,
-              height,
-              true,
-              color1
-            );
+            addFace(layer, row, column, width, height, true, color1);
           }
 
           // Repeat the above for the other color map
@@ -417,15 +383,7 @@ export function lookupToMesh<T>(
               }
             }
 
-            addFace(
-              layer,
-              cleanKeys[row],
-              cleanKeys[column],
-              width,
-              height,
-              false,
-              color2
-            );
+            addFace(layer, row, column, width, height, false, color2);
           }
         }
       }
@@ -435,15 +393,18 @@ export function lookupToMesh<T>(
   // X faces. X = layer, Y = row, Z = column
   runDimension(
     (layer, row, column) => {
-      const first = (lookup as any)["" + layer];
-      if (!first) {
+      if (
+        layer < 0 ||
+        layer >= size ||
+        row < 0 ||
+        row >= size ||
+        column < 0 ||
+        column >= size
+      ) {
         return null;
       }
-      const second = first["" + row];
-      if (!second) {
-        return null;
-      }
-      return second["" + column] || null;
+
+      return lookup.get(layer, row, column);
     },
     (layer, row, column, width, height, front, color) => {
       const prevIndex = result.position.length / 3;
@@ -517,15 +478,18 @@ export function lookupToMesh<T>(
   // Y faces. Y = layer, X = row, Z = column
   runDimension(
     (layer, row, column) => {
-      const first = (lookup as any)["" + row];
-      if (!first) {
+      if (
+        layer < 0 ||
+        layer >= size ||
+        row < 0 ||
+        row >= size ||
+        column < 0 ||
+        column >= size
+      ) {
         return null;
       }
-      const second = first["" + layer];
-      if (!second) {
-        return null;
-      }
-      return second["" + column] || null;
+
+      return lookup.get(row, layer, column);
     },
     (layer, row, column, width, height, front, color) => {
       const prevIndex = result.position.length / 3;
@@ -599,15 +563,18 @@ export function lookupToMesh<T>(
   // Z faces. Z = layer, X = row, Y = column
   runDimension(
     (layer, row, column) => {
-      const first = (lookup as any)["" + row];
-      if (!first) {
+      if (
+        layer < 0 ||
+        layer >= size ||
+        row < 0 ||
+        row >= size ||
+        column < 0 ||
+        column >= size
+      ) {
         return null;
       }
-      const second = first["" + layer];
-      if (!second) {
-        return null;
-      }
-      return second["" + column] || null;
+
+      return lookup.get(layer, row, column);
     },
     (layer, row, column, width, height, front, color) => {
       const prevIndex = result.position.length / 3;
