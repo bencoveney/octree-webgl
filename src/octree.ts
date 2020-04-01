@@ -211,14 +211,10 @@ export function lookupToMesh<T>(
     // Iterate through layers in the main dimension.
     for (let layer = 0; layer < size; layer++) {
       // Prepare a map to hold color information for both "sides" of this layer of the main dimension.
-      const colorMap1: Color[][] = [];
-      const colorMap2: Color[][] = [];
+      const colorMap1_ = ndarray<Color>(new Array(size * size), [size, size]);
+      const colorMap2_ = ndarray<Color>(new Array(size * size), [size, size]);
       // Iterate through rows and columns inside the layer.
       for (let row = 0; row < size; row++) {
-        const mapRow1: Color[] = [];
-        colorMap1.push(mapRow1);
-        const mapRow2: Color[] = [];
-        colorMap2.push(mapRow2);
         for (let column = 0; column < size; column++) {
           let color1: Color = null;
           let color2: Color = null;
@@ -260,8 +256,8 @@ export function lookupToMesh<T>(
               }
             }
           }
-          mapRow1.push(color1);
-          mapRow2.push(color2);
+          colorMap1_.set(row, column, color1 as any);
+          colorMap2_.set(row, column, color2 as any);
         }
       }
 
@@ -271,7 +267,7 @@ export function lookupToMesh<T>(
       for (let row = 0; row < size; row++) {
         for (let column = 0; column < size; column++) {
           // For each side, if the current voxel should be rendered, check if we can expand it
-          const color1 = colorMap1[row][column];
+          const color1 = colorMap1_.get(row, column);
           if (color1) {
             // Start with it at height 1, and expand until we run out of voxels of the same color.
             let height = 1;
@@ -284,13 +280,13 @@ export function lookupToMesh<T>(
               if (rowToCheck >= size) {
                 canExpandHeight = false;
               } else {
-                const nextColor = colorMap1[rowToCheck][column];
+                const nextColor = colorMap1_.get(rowToCheck, column);
                 if (nextColor && vec4.equals(nextColor, color1)) {
                   // Success, expand!
                   height = nextHeight;
                   // Blank that voxel from the color map, we don't need to check it again as it is
                   // part of this mesh.
-                  colorMap1[rowToCheck][column] = null;
+                  colorMap1_.set(rowToCheck, column, null as any);
                 } else {
                   canExpandHeight = false;
                 }
@@ -311,7 +307,7 @@ export function lookupToMesh<T>(
                 // We will need to check the colour of each voxel in the potential column.
                 let nextColumnMatches = true;
                 for (let i = 0; i < height; i++) {
-                  const nextColor = colorMap1[row + i][columnToCheck];
+                  const nextColor = colorMap1_.get(row + i, columnToCheck);
                   if (!nextColor || !vec4.equals(nextColor, color1)) {
                     nextColumnMatches = false;
                   }
@@ -320,7 +316,7 @@ export function lookupToMesh<T>(
                 if (nextColumnMatches) {
                   width = nextWidth;
                   for (let i = 0; i < height; i++) {
-                    colorMap1[row + i][columnToCheck] = null;
+                    colorMap1_.set(row + i, columnToCheck, null as any);
                   }
                 } else {
                   canExpandWidth = false;
@@ -341,7 +337,7 @@ export function lookupToMesh<T>(
           }
 
           // Repeat the above for the other color map
-          const color2 = colorMap2[row][column];
+          const color2 = colorMap2_.get(row, column);
           if (color2) {
             let height = 1;
             let canExpandHeight = true;
@@ -352,10 +348,10 @@ export function lookupToMesh<T>(
               if (rowToCheck >= size) {
                 canExpandHeight = false;
               } else {
-                const nextColor = colorMap2[rowToCheck][column];
+                const nextColor = colorMap2_.get(rowToCheck, column);
                 if (nextColor && vec4.equals(nextColor, color2)) {
                   height = nextHeight;
-                  colorMap2[rowToCheck][column] = null;
+                  colorMap2_.set(rowToCheck, column, null as any);
                 } else {
                   canExpandHeight = false;
                 }
@@ -373,7 +369,7 @@ export function lookupToMesh<T>(
               } else {
                 let nextColumnMatches = true;
                 for (let i = 0; i < height; i++) {
-                  const nextColor = colorMap2[row + i][columnToCheck];
+                  const nextColor = colorMap2_.get(row + i, columnToCheck);
                   if (!nextColor || !vec4.equals(nextColor, color2)) {
                     nextColumnMatches = false;
                   }
@@ -382,7 +378,7 @@ export function lookupToMesh<T>(
                 if (nextColumnMatches) {
                   width = nextWidth;
                   for (let i = 0; i < height; i++) {
-                    colorMap2[row + i][columnToCheck] = null;
+                    colorMap2_.set(row + i, columnToCheck, null as any);
                   }
                 } else {
                   canExpandWidth = false;
