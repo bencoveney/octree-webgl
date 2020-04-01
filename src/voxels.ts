@@ -32,166 +32,27 @@ export interface LeafNode<T> {
 type Node<T> = InnerNode<T> | LeafNode<T>;
 
 export function create<T>(
-  depth: number,
-  callback: (center: vec3) => T
-): Node<T> {
-  const firstSize = Math.pow(2, depth);
+  size: number,
+  callback: (x: number, y: number, z: number) => T
+): ndarray<T> {
+  const result = ndarray(new Array<T>(size * size * size), [size, size, size]);
 
-  function createNode(
-    parent: Node<T> | null,
-    currentDepth: number,
-    center: vec3,
-    halfSize: number
-  ): Node<T> {
-    if (currentDepth === 0) {
-      const leaf: LeafNode<T> = {
-        parent,
-        center,
-        halfSize,
-        isLeaf: true,
-        value: callback(center)
-      };
-      return leaf;
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      for (let z = 0; z < size; z++) {
+        result.set(x, y, z, callback(x, y, z) as any);
+      }
     }
-
-    const innerNode: InnerNode<T> = {
-      children: ([] as Node<T>[]) as Children<T>,
-      parent,
-      center,
-      halfSize,
-      isLeaf: false
-    };
-
-    const nextDepth = currentDepth - 1;
-    const nextHalfSize = halfSize / 2;
-
-    innerNode.children.push(
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] - nextHalfSize,
-          center[1] - nextHalfSize,
-          center[2] - nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] + nextHalfSize,
-          center[1] - nextHalfSize,
-          center[2] - nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] - nextHalfSize,
-          center[1] + nextHalfSize,
-          center[2] - nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] + nextHalfSize,
-          center[1] + nextHalfSize,
-          center[2] - nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] - nextHalfSize,
-          center[1] - nextHalfSize,
-          center[2] + nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] + nextHalfSize,
-          center[1] - nextHalfSize,
-          center[2] + nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] - nextHalfSize,
-          center[1] + nextHalfSize,
-          center[2] + nextHalfSize
-        ],
-        nextHalfSize
-      ),
-      createNode(
-        innerNode,
-        nextDepth,
-        [
-          center[0] + nextHalfSize,
-          center[1] + nextHalfSize,
-          center[2] + nextHalfSize
-        ],
-        nextHalfSize
-      )
-    );
-
-    return innerNode;
   }
 
-  const firstHalfSize = firstSize / 2;
-  const firstCenter: vec3 = [firstHalfSize, firstHalfSize, firstHalfSize];
-
-  return createNode(null, depth, firstCenter, firstHalfSize);
-}
-
-export function forEachLeaf<T>(
-  octree: Node<T>,
-  callback: (leaf: LeafNode<T>) => void
-): void {
-  if (octree.isLeaf) {
-    callback(octree);
-  } else {
-    octree.children.forEach(child => forEachLeaf(child, callback));
-  }
-}
-
-export function createLookup<T>(
-  octree: Node<T>,
-  size: number
-): ndarray<LeafNode<T>> {
-  const result = ndarray<LeafNode<T>>(
-    new Array<LeafNode<T>>(size * size * size),
-    [size, size, size]
-  );
-  forEachLeaf(octree, leaf =>
-    result.set(
-      leaf.center[0] - leaf.halfSize,
-      leaf.center[1] - leaf.halfSize,
-      leaf.center[2] - leaf.halfSize,
-      leaf as any
-    )
-  );
   return result;
 }
 
 type Color = vec4 | null;
 
-export function lookupToMesh<T>(
-  lookup: ndarray<LeafNode<T>>,
-  getleafColor: (leaf: LeafNode<T>) => Color
+export function voxelsToMesh<T>(
+  lookup: ndarray<T>,
+  getleafColor: (leaf: T) => Color
 ): ModelData {
   const result: ModelData = {
     position: [],
