@@ -202,18 +202,12 @@ export function lookupToMesh<T>(
   const size = lookup.shape[0];
   const halfSize = size / 2;
 
-  function runDimension(
-    transposeLookup: ndarray<LeafNode<T>>,
-    addFace: (
-      layer: number,
-      row: number,
-      column: number,
-      width: number,
-      height: number,
-      front: boolean,
-      color: vec4
-    ) => void
-  ) {
+  function runDimension(transpose: [number, number, number]) {
+    let transposeLookup = lookup;
+    if (!transpose.some((val, index) => val !== index)) {
+      transposeLookup = transposeLookup.transpose(...transpose);
+    }
+
     // Iterate through layers in the main dimension.
     for (let layer = 0; layer < size; layer++) {
       // Prepare a map to hold color information for both "sides" of this layer of the main dimension.
@@ -334,7 +328,16 @@ export function lookupToMesh<T>(
               }
             }
 
-            addFace(layer, row, column, width, height, true, color1);
+            addFaceToMesh(
+              transpose,
+              layer,
+              row,
+              column,
+              width,
+              height,
+              true,
+              color1
+            );
           }
 
           // Repeat the above for the other color map
@@ -387,59 +390,99 @@ export function lookupToMesh<T>(
               }
             }
 
-            addFace(layer, row, column, width, height, false, color2);
+            addFaceToMesh(
+              transpose,
+              layer,
+              row,
+              column,
+              width,
+              height,
+              false,
+              color2
+            );
           }
         }
       }
     }
   }
 
-  // X faces. X = layer, Y = row, Z = column
-  runDimension(lookup, (layer, row, column, width, height, front, color) => {
+  function addFaceToMesh(
+    transpose: [number, number, number],
+    layer: number,
+    row: number,
+    column: number,
+    width: number,
+    height: number,
+    front: boolean,
+    color: vec4
+  ) {
     const prevIndex = result.position.length / 3;
 
-    const lowX = layer - halfSize;
-    const highX = lowX + 1;
-    const x = front ? highX : lowX;
+    const layerLow = layer - halfSize;
+    const layerHigh = layerLow + 1;
+    const layerActual = front ? layerHigh : layerLow;
 
-    const lowY = row - halfSize;
-    const highY = lowY + height;
-    const lowZ = column - halfSize;
-    const highZ = lowZ + width;
+    const rowLow = row - halfSize;
+    const rowHigh = rowLow + height;
+    const columnLow = column - halfSize;
+    const columnHigh = columnLow + width;
 
+    const transposeIndex0 = transpose.indexOf(0);
+    const transposeIndex1 = transpose.indexOf(1);
+    const transposeIndex2 = transpose.indexOf(2);
+
+    const vertex0 = [layerActual, rowLow, columnLow];
+    const vertex1 = [layerActual, rowHigh, columnLow];
+    const vertex2 = [layerActual, rowHigh, columnHigh];
+    const vertex3 = [layerActual, rowLow, columnHigh];
     result.position.push(
-      x,
-      lowY,
-      lowZ,
-      x,
-      highY,
-      lowZ,
-      x,
-      highY,
-      highZ,
-      x,
-      lowY,
-      highZ
+      vertex0[transposeIndex0],
+      vertex0[transposeIndex1],
+      vertex0[transposeIndex2],
+      vertex1[transposeIndex0],
+      vertex1[transposeIndex1],
+      vertex1[transposeIndex2],
+      vertex2[transposeIndex0],
+      vertex2[transposeIndex1],
+      vertex2[transposeIndex2],
+      vertex3[transposeIndex0],
+      vertex3[transposeIndex1],
+      vertex3[transposeIndex2]
     );
 
-    for (let colorIndex = 0; colorIndex < 4; colorIndex++) {
-      result.color.push(color[0], color[1], color[2], color[3]);
-    }
-
-    const xNormal = front ? 1 : -1;
+    const normal = [front ? 1 : -1, 0, 0];
     result.normal.push(
-      xNormal,
-      0,
-      0,
-      xNormal,
-      0,
-      0,
-      xNormal,
-      0,
-      0,
-      xNormal,
-      0,
-      0
+      normal[transposeIndex0],
+      normal[transposeIndex1],
+      normal[transposeIndex2],
+      normal[transposeIndex0],
+      normal[transposeIndex1],
+      normal[transposeIndex2],
+      normal[transposeIndex0],
+      normal[transposeIndex1],
+      normal[transposeIndex2],
+      normal[transposeIndex0],
+      normal[transposeIndex1],
+      normal[transposeIndex2]
+    );
+
+    result.color.push(
+      color[0],
+      color[1],
+      color[2],
+      color[3],
+      color[0],
+      color[1],
+      color[2],
+      color[3],
+      color[0],
+      color[1],
+      color[2],
+      color[3],
+      color[0],
+      color[1],
+      color[2],
+      color[3]
     );
 
     if (front) {
@@ -461,155 +504,14 @@ export function lookupToMesh<T>(
         prevIndex + 2
       );
     }
-  });
+  }
 
-  const transposeLookup = lookup.transpose(1, 0, 2);
-
+  // X faces. X = layer, Y = row, Z = column
+  runDimension([0, 1, 2]);
   // Y faces. Y = layer, X = row, Z = column
-  runDimension(
-    transposeLookup,
-    (layer, row, column, width, height, front, color) => {
-      const prevIndex = result.position.length / 3;
-
-      const lowY = layer - halfSize;
-      const highY = lowY + 1;
-      const y = front ? highY : lowY;
-
-      const lowX = row - halfSize;
-      const highX = lowX + height;
-      const lowZ = column - halfSize;
-      const highZ = lowZ + width;
-
-      result.position.push(
-        lowX,
-        y,
-        lowZ,
-        highX,
-        y,
-        lowZ,
-        highX,
-        y,
-        highZ,
-        lowX,
-        y,
-        highZ
-      );
-
-      for (let colorIndex = 0; colorIndex < 4; colorIndex++) {
-        result.color.push(color[0], color[1], color[2], color[3]);
-      }
-
-      const yNormal = front ? 1 : -1;
-      result.normal.push(
-        0,
-        yNormal,
-        0,
-        0,
-        yNormal,
-        0,
-        0,
-        yNormal,
-        0,
-        0,
-        yNormal,
-        0
-      );
-
-      if (!front) {
-        result.index.push(
-          prevIndex,
-          prevIndex + 1,
-          prevIndex + 2,
-          prevIndex,
-          prevIndex + 2,
-          prevIndex + 3
-        );
-      } else {
-        result.index.push(
-          prevIndex,
-          prevIndex + 2,
-          prevIndex + 1,
-          prevIndex,
-          prevIndex + 3,
-          prevIndex + 2
-        );
-      }
-    }
-  );
-
-  const transposeLookup2 = lookup.transpose(2, 0, 1);
-
+  runDimension([1, 2, 0]);
   // Z faces. Z = layer, X = row, Y = column
-  runDimension(
-    transposeLookup2,
-    (layer, row, column, width, height, front, color) => {
-      const prevIndex = result.position.length / 3;
-
-      const lowZ = layer - halfSize;
-      const highZ = lowZ + 1;
-      const z = front ? highZ : lowZ;
-
-      const lowX = row - halfSize;
-      const highX = lowX + height;
-      const lowY = column - halfSize;
-      const highY = lowY + width;
-
-      result.position.push(
-        lowX,
-        lowY,
-        z,
-        highX,
-        lowY,
-        z,
-        highX,
-        highY,
-        z,
-        lowX,
-        highY,
-        z
-      );
-
-      for (let colorIndex = 0; colorIndex < 4; colorIndex++) {
-        result.color.push(color[0], color[1], color[2], color[3]);
-      }
-
-      const zNormal = front ? 1 : -1;
-      result.normal.push(
-        0,
-        0,
-        zNormal,
-        0,
-        0,
-        zNormal,
-        0,
-        0,
-        zNormal,
-        0,
-        0,
-        zNormal
-      );
-
-      if (front) {
-        result.index.push(
-          prevIndex,
-          prevIndex + 1,
-          prevIndex + 2,
-          prevIndex,
-          prevIndex + 2,
-          prevIndex + 3
-        );
-      } else {
-        result.index.push(
-          prevIndex,
-          prevIndex + 2,
-          prevIndex + 1,
-          prevIndex,
-          prevIndex + 3,
-          prevIndex + 2
-        );
-      }
-    }
-  );
+  runDimension([2, 0, 1]);
 
   return result;
 }
