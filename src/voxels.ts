@@ -1,10 +1,9 @@
-import { vec4 } from "gl-matrix";
 import { ModelData } from "./render/modelStore";
 import ndarray from "ndarray";
-
-type Color = vec4 | null;
+import { Material, Color, getRgba } from "./voxel";
 
 type Voxel = {
+  material: Material;
   color: Color;
 };
 
@@ -50,24 +49,31 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
     // Iterate through layers in the main dimension.
     for (let layer = 0; layer < size; layer++) {
       // Prepare a map to hold color information for both "sides" of this layer of the main dimension.
-      const colorMap1_ = ndarray<Color>(new Array(size * size), [size, size]);
-      const colorMap2_ = ndarray<Color>(new Array(size * size), [size, size]);
+      const colorMap1_ = ndarray<Color | null>(new Array(size * size), [
+        size,
+        size
+      ]);
+      const colorMap2_ = ndarray<Color | null>(new Array(size * size), [
+        size,
+        size
+      ]);
       // Iterate through rows and columns inside the layer.
       for (let row = 0; row < size; row++) {
         for (let column = 0; column < size; column++) {
-          let color1: Color = null;
-          let color2: Color = null;
+          let color1: Color | null = null;
+          let color2: Color | null = null;
           // Find the colour of the specific voxel.
-          const color = transposeVoxels.get(layer, row, column).color;
+          const material = transposeVoxels.get(layer, row, column).material;
           // If it isn't empty space...
-          if (color) {
+          if (material !== Material.AIR) {
+            const color = transposeVoxels.get(layer, row, column).color;
             // Check if there is a voxel on one side of it.
             if (layer + 1 >= size) {
               color1 = color;
             } else {
               const neighbour1 = transposeVoxels.get(layer + 1, row, column)
-                .color;
-              if (neighbour1 === null) {
+                .material;
+              if (neighbour1 === Material.AIR) {
                 // If there is no voxel on this side of it, then the face will be visible and
                 // should be added to the color map for this side of the layer.
                 color1 = color;
@@ -78,8 +84,8 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
               color2 = color;
             } else {
               const neighbour2 = transposeVoxels.get(layer - 1, row, column)
-                .color;
-              if (neighbour2 === null) {
+                .material;
+              if (neighbour2 === Material.AIR) {
                 // If there is no voxel on this side of it, then the face will be visible and
                 // should be added to the color map for this side of the layer.
                 color2 = color;
@@ -98,7 +104,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
         for (let column = 0; column < size; column++) {
           // For each side, if the current voxel should be rendered, check if we can expand it
           const color1 = colorMap1_.get(row, column);
-          if (color1) {
+          if (color1 !== null) {
             // Start with it at height 1, and expand until we run out of voxels of the same color.
             let height = 1;
             let canExpandHeight = true;
@@ -111,7 +117,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
                 canExpandHeight = false;
               } else {
                 const nextColor = colorMap1_.get(rowToCheck, column);
-                if (nextColor && vec4.equals(nextColor, color1)) {
+                if (nextColor !== null && nextColor === color1) {
                   // Success, expand!
                   height = nextHeight;
                   // Blank that voxel from the color map, we don't need to check it again as it is
@@ -138,7 +144,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
                 let nextColumnMatches = true;
                 for (let i = 0; i < height; i++) {
                   const nextColor = colorMap1_.get(row + i, columnToCheck);
-                  if (!nextColor || !vec4.equals(nextColor, color1)) {
+                  if (nextColor === null || nextColor !== color1) {
                     nextColumnMatches = false;
                   }
                 }
@@ -168,7 +174,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
 
           // Repeat the above for the other color map
           const color2 = colorMap2_.get(row, column);
-          if (color2) {
+          if (color2 !== null) {
             let height = 1;
             let canExpandHeight = true;
             while (canExpandHeight) {
@@ -179,7 +185,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
                 canExpandHeight = false;
               } else {
                 const nextColor = colorMap2_.get(rowToCheck, column);
-                if (nextColor && vec4.equals(nextColor, color2)) {
+                if (nextColor !== null && nextColor === color2) {
                   height = nextHeight;
                   colorMap2_.set(rowToCheck, column, null as any);
                 } else {
@@ -200,7 +206,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
                 let nextColumnMatches = true;
                 for (let i = 0; i < height; i++) {
                   const nextColor = colorMap2_.get(row + i, columnToCheck);
-                  if (!nextColor || !vec4.equals(nextColor, color2)) {
+                  if (nextColor === null || nextColor !== color2) {
                     nextColumnMatches = false;
                   }
                 }
@@ -240,7 +246,7 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
     width: number,
     height: number,
     front: boolean,
-    color: vec4
+    color: Color
   ) {
     const prevIndex = result.position.length / 3;
 
@@ -292,23 +298,24 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
       normal[transposeIndex2]
     );
 
+    const rgba = getRgba(color);
     result.color.push(
-      color[0],
-      color[1],
-      color[2],
-      color[3],
-      color[0],
-      color[1],
-      color[2],
-      color[3],
-      color[0],
-      color[1],
-      color[2],
-      color[3],
-      color[0],
-      color[1],
-      color[2],
-      color[3]
+      rgba[0],
+      rgba[1],
+      rgba[2],
+      rgba[3],
+      rgba[0],
+      rgba[1],
+      rgba[2],
+      rgba[3],
+      rgba[0],
+      rgba[1],
+      rgba[2],
+      rgba[3],
+      rgba[0],
+      rgba[1],
+      rgba[2],
+      rgba[3]
     );
 
     if (front) {
