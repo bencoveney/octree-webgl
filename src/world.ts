@@ -3,7 +3,7 @@ import * as Voxels from "./voxels";
 import * as SceneGraph from "./sceneGraph";
 import { vec3 } from "gl-matrix";
 import * as ModelStore from "./render/modelStore";
-import { Material, Color } from "./voxel";
+import * as Voxel from "./voxel";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
@@ -48,11 +48,11 @@ export function setUpWorld(): World {
 
   const voxels = Voxels.create(size, (x, y, z) => {
     const distance = vec3.distance([x, y, z], [halfSize, halfSize, halfSize]);
-    const color: Color = Math.floor((x + y + z) / 5);
+    const color: Voxel.Color = Math.floor((x + y + z) / 5);
     if (distance < halfSize) {
-      return { color, material: Material.MATERIAL_1 };
+      return Voxel.create(Voxel.Material.MATERIAL_1, color);
     }
-    return { color, material: Material.AIR };
+    return Voxel.create(Voxel.Material.AIR, color);
   });
   const faces = Voxels.voxelsToMesh(voxels);
   ModelStore.storeModel("cubegen", faces);

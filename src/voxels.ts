@@ -1,11 +1,13 @@
 import { ModelData } from "./render/modelStore";
 import ndarray from "ndarray";
-import { Material, Color, getRgba } from "./voxel";
-
-type Voxel = {
-  material: Material;
-  color: Color;
-};
+import {
+  Material,
+  Color,
+  getRgba,
+  Voxel,
+  getMaterial,
+  getColor
+} from "./voxel";
 
 type Voxels = ndarray<Voxel>;
 
@@ -13,7 +15,7 @@ export function create(
   size: number,
   callback: (x: number, y: number, z: number) => Voxel
 ): Voxels {
-  const result = ndarray(new Array<Voxel>(size * size * size), [
+  const result = ndarray<Voxel>(new Uint8Array(size * size * size), [
     size,
     size,
     size
@@ -63,16 +65,17 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
           let color1: Color | null = null;
           let color2: Color | null = null;
           // Find the colour of the specific voxel.
-          const material = transposeVoxels.get(layer, row, column).material;
+          const material = getMaterial(transposeVoxels.get(layer, row, column));
           // If it isn't empty space...
           if (material !== Material.AIR) {
-            const color = transposeVoxels.get(layer, row, column).color;
+            const color = getColor(transposeVoxels.get(layer, row, column));
             // Check if there is a voxel on one side of it.
             if (layer + 1 >= size) {
               color1 = color;
             } else {
-              const neighbour1 = transposeVoxels.get(layer + 1, row, column)
-                .material;
+              const neighbour1 = getMaterial(
+                transposeVoxels.get(layer + 1, row, column)
+              );
               if (neighbour1 === Material.AIR) {
                 // If there is no voxel on this side of it, then the face will be visible and
                 // should be added to the color map for this side of the layer.
@@ -83,8 +86,9 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
             if (layer - 1 < 0) {
               color2 = color;
             } else {
-              const neighbour2 = transposeVoxels.get(layer - 1, row, column)
-                .material;
+              const neighbour2 = getMaterial(
+                transposeVoxels.get(layer - 1, row, column)
+              );
               if (neighbour2 === Material.AIR) {
                 // If there is no voxel on this side of it, then the face will be visible and
                 // should be added to the color map for this side of the layer.

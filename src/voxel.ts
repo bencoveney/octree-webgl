@@ -5,6 +5,8 @@
 
 import { vec4 } from "gl-matrix";
 
+export type Voxel = number;
+
 export const enum Color {
   COLOR_0 = 0b00000,
   COLOR_1 = 0b00001,
@@ -93,18 +95,17 @@ export const enum Material {
 }
 
 export function create(material: Material, color: Color): number {
-  return (material << 5) + color;
+  return ((material & 7) << 5) + (color & 31);
 }
 
 export function getMaterial(voxel: number): Material {
-  // Take the right-most 5 bits.
-  return voxel & 31;
+  // Shift off the right-most 5 bits, leaving the left-most 3.
+  return voxel >> 5;
 }
 
 export function getColor(voxel: number): Color {
-  // return (voxel >> 5) & 8 safer?
-  // Shift off the right-most 5 bits, leaving the left-most 3.
-  return voxel >> 5;
+  // Take the right-most 5 bits.
+  return voxel & 31;
 }
 
 export function getRgba(color: Color) {
