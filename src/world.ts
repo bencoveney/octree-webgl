@@ -4,6 +4,7 @@ import * as SceneGraph from "./sceneGraph";
 import { vec3 } from "gl-matrix";
 import * as ModelStore from "./render/modelStore";
 import * as Voxel from "./voxel";
+import * as Noise from "simplenoise";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
@@ -31,9 +32,8 @@ export function create(
 }
 
 export function setUpWorld(): World {
-  const depth = 6;
+  const depth = 5;
   const size = Math.pow(2, depth);
-  const halfSize = size / 2;
 
   const world = create(
     Position.create(0, 0, size + depth * 3, 1),
@@ -46,13 +46,15 @@ export function setUpWorld(): World {
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
 
+  Noise.seed(Math.random());
+
   const voxels = Voxels.create(size, (x, y, z) => {
-    const distance = vec3.distance([x, y, z], [halfSize, halfSize, halfSize]);
     const color: Voxel.Color = Math.floor((x + y + z) / 5);
-    if (distance < halfSize) {
-      return Voxel.create(Voxel.Material.MATERIAL_1, color);
-    }
-    return Voxel.create(Voxel.Material.AIR, color);
+    const material =
+      Noise.perlin3(x / 10, y / 10, z / 10) > 0.25
+        ? Voxel.Material.MATERIAL_1
+        : Voxel.Material.AIR;
+    return Voxel.create(material, color);
   });
   const faces = Voxels.voxelsToMesh(voxels);
   ModelStore.storeModel("cubegen", faces);

@@ -22,6 +22,7 @@
     "html-webpack-plugin": "^3.2.0",
     "ndarray": "^1.0.19",
     "scss-config-webpack-plugin": "^2.0.0",
+    "simplenoise": "^1.0.1",
     "webpack": "^4.41.2",
     "webpack-cli": "^3.3.10",
     "webpack-dev-server": "^3.9.0",
