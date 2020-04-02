@@ -1,41 +1,24 @@
-import { vec3, vec4 } from "gl-matrix";
+import { vec4 } from "gl-matrix";
 import { ModelData } from "./render/modelStore";
 import ndarray from "ndarray";
 
-type Children<T> = [
-  Node<T>,
-  Node<T>,
-  Node<T>,
-  Node<T>,
-  Node<T>,
-  Node<T>,
-  Node<T>,
-  Node<T>
-];
+type Color = vec4 | null;
 
-export interface InnerNode<T> {
-  children: Children<T>;
-  parent: Node<T> | null;
-  center: vec3;
-  halfSize: number;
-  isLeaf: false;
-}
+type Voxel = {
+  color: Color;
+};
 
-export interface LeafNode<T> {
-  parent: Node<T> | null;
-  center: vec3;
-  halfSize: number;
-  isLeaf: true;
-  value: T;
-}
+type Voxels = ndarray<Voxel>;
 
-type Node<T> = InnerNode<T> | LeafNode<T>;
-
-export function create<T>(
+export function create(
   size: number,
-  callback: (x: number, y: number, z: number) => T
-): ndarray<T> {
-  const result = ndarray(new Array<T>(size * size * size), [size, size, size]);
+  callback: (x: number, y: number, z: number) => Voxel
+): Voxels {
+  const result = ndarray(new Array<Voxel>(size * size * size), [
+    size,
+    size,
+    size
+  ]);
 
   for (let x = 0; x < size; x++) {
     for (let y = 0; y < size; y++) {
@@ -48,25 +31,20 @@ export function create<T>(
   return result;
 }
 
-type Color = vec4 | null;
-
-export function voxelsToMesh<T>(
-  lookup: ndarray<T>,
-  getleafColor: (leaf: T) => Color
-): ModelData {
+export function voxelsToMesh(voxels: Voxels): ModelData {
   const result: ModelData = {
     position: [],
     color: [],
     index: [],
     normal: []
   };
-  const size = lookup.shape[0];
+  const size = voxels.shape[0];
   const halfSize = size / 2;
 
   function runDimension(transpose: [number, number, number]) {
-    let transposeLookup = lookup;
+    let transposeVoxels = voxels;
     if (!transpose.some((val, index) => val !== index)) {
-      transposeLookup = transposeLookup.transpose(...transpose);
+      transposeVoxels = transposeVoxels.transpose(...transpose);
     }
 
     // Iterate through layers in the main dimension.
@@ -80,23 +58,18 @@ export function voxelsToMesh<T>(
           let color1: Color = null;
           let color2: Color = null;
           // Find the colour of the specific voxel.
-          const leaf = transposeLookup.get(layer, row, column);
-          const color = getleafColor(leaf);
+          const color = transposeVoxels.get(layer, row, column).color;
           // If it isn't empty space...
           if (color) {
             // Check if there is a voxel on one side of it.
             if (layer + 1 >= size) {
               color1 = color;
             } else {
-              const neighbour1 = transposeLookup.get(layer + 1, row, column);
-              if (neighbour1) {
-                const neighbour1Color = getleafColor(neighbour1);
-                if (neighbour1Color === null) {
-                  // If there is no voxel on this side of it, then the face will be visible and
-                  // should be added to the color map for this side of the layer.
-                  color1 = color;
-                }
-              } else {
+              const neighbour1 = transposeVoxels.get(layer + 1, row, column)
+                .color;
+              if (neighbour1 === null) {
+                // If there is no voxel on this side of it, then the face will be visible and
+                // should be added to the color map for this side of the layer.
                 color1 = color;
               }
             }
@@ -104,15 +77,11 @@ export function voxelsToMesh<T>(
             if (layer - 1 < 0) {
               color2 = color;
             } else {
-              const neighbour2 = transposeLookup.get(layer - 1, row, column);
-              if (neighbour2) {
-                const neighbour2Color = getleafColor(neighbour2);
-                if (neighbour2Color === null) {
-                  // If there is no voxel on this side of it, then the face will be visible and
-                  // should be added to the color map for this side of the layer.
-                  color2 = color;
-                }
-              } else {
+              const neighbour2 = transposeVoxels.get(layer - 1, row, column)
+                .color;
+              if (neighbour2 === null) {
+                // If there is no voxel on this side of it, then the face will be visible and
+                // should be added to the color map for this side of the layer.
                 color2 = color;
               }
             }

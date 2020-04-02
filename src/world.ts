@@ -45,14 +45,14 @@ export function setUpWorld(): World {
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
 
-  const voxels = Voxels.create<boolean>(
-    size,
-    (x, y, z) =>
-      vec3.distance([x, y, z], [halfSize, halfSize, halfSize]) < halfSize
-  );
-  const faces = Voxels.voxelsToMesh(voxels, leaf =>
-    leaf ? [1, 1, 1, 1] : null
-  );
+  const voxels = Voxels.create(size, (x, y, z) => {
+    const distance = vec3.distance([x, y, z], [halfSize, halfSize, halfSize]);
+    if (distance < halfSize) {
+      return { color: [1, 1, 1, 1] };
+    }
+    return { color: null };
+  });
+  const faces = Voxels.voxelsToMesh(voxels);
   ModelStore.storeModel("cubegen", faces);
   SceneGraph.addChild(world.sceneGraph, Position.init(), "cubegen");
 
