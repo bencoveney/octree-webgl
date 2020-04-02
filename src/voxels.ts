@@ -44,7 +44,11 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
 
   function runDimension(transpose: [number, number, number]) {
     let transposeVoxels = voxels;
-    if (!transpose.some((val, index) => val !== index)) {
+    if (
+      transpose
+        .map((lookupIndex, index) => lookupIndex === index)
+        .some(match => !match)
+    ) {
       transposeVoxels = transposeVoxels.transpose(...transpose);
     }
 
@@ -343,11 +347,8 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
     }
   }
 
-  // X faces. X = layer, Y = row, Z = column
   runDimension([0, 1, 2]);
-  // Y faces. Y = layer, X = row, Z = column
   runDimension([1, 2, 0]);
-  // Z faces. Z = layer, X = row, Y = column
   runDimension([2, 0, 1]);
 
   return result;
