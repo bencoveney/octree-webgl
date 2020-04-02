@@ -9,7 +9,7 @@ import {
   getColor
 } from "./voxel";
 
-type Voxels = ndarray<Voxel>;
+export type Voxels = ndarray<Voxel>;
 
 export function create(
   size: number,

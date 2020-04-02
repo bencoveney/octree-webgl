@@ -7,7 +7,7 @@ import { model as axisModel } from "./render/models/axisModel";
 import { render } from "./render/render";
 import * as ModelStore from "./render/modelStore";
 import { getDebugMode } from "./debug/debugMode";
-import { setUpWorld } from "./world";
+import { setUpWorld, update } from "./world";
 
 function main() {
   const gl = createViewport();
@@ -23,7 +23,7 @@ function main() {
     const deltaTimeS = deltaTimeMs / 1000;
     resizeViewport(gl);
 
-    world.sceneGraph.position.rotation[1] = -totalTimeMs / 4000;
+    update(world, deltaTimeMs, totalTimeMs);
 
     render(gl, shaders, world);
 

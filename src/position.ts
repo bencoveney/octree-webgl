@@ -42,7 +42,7 @@ export function toMatrix({ position, rotation, scale }: Position): mat4 {
     mat4.rotateZ(matrix, matrix, z);
   }
 
-  if (scale) {
+  if (scale !== 1) {
     mat4.scale(matrix, matrix, [scale, scale, scale]);
   }
 
