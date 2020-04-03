@@ -58,7 +58,7 @@ export function setUpWorld(): World {
     [halfSize, 0],
     [halfSize, halfSize]
   ].map(([x, z]) => ({
-    position: Position.create(x, size * 2, z, 2),
+    position: Position.create([x, size * 2, z], [1, 2, 1]),
     speed: vec3.create(),
     width: 2,
     height: 2,
@@ -79,7 +79,7 @@ export function setUpWorld(): World {
   ModelStore.storeModel("cubegen", faces);
 
   const world = create(
-    Position.create(0, 0, size + depth * 8, 1),
+    Position.create([0, 0, size + depth * 8]),
     [0.3, 0.3, 0.3],
     [1, 1, 1],
     [0.85, 0.8, 0.75],

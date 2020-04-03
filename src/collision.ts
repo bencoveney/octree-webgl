@@ -13,7 +13,6 @@ const logger = logNTimes(0, 5);
 	- The entityBb for vertical collisions is happening 1 to early,
 			probably due to fractional overlap
 	- Collisions do not resolve really - entity is "embedded" at high speeds
-	- Cube is a poor representation of the bounding box
 */
 
 export function collisionCheck({ voxels }: World, entity: Entity): boolean {

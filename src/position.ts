@@ -3,25 +3,20 @@ import { vec3, mat4 } from "gl-matrix";
 export interface Position {
   position: vec3;
   rotation: vec3;
-  scale: number;
+  scale: vec3;
 }
 
 export function init(): Position {
   return {
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: 1
+    scale: [1, 1, 1]
   };
 }
 
-export function create(
-  x: number,
-  y: number,
-  z: number,
-  scale: number
-): Position {
+export function create(position: vec3, scale: vec3 = [1, 1, 1]): Position {
   return {
-    position: [x, y, z],
+    position,
     rotation: [0, 0, 0],
     scale
   };
@@ -42,8 +37,8 @@ export function toMatrix({ position, rotation, scale }: Position): mat4 {
     mat4.rotateZ(matrix, matrix, z);
   }
 
-  if (scale !== 1) {
-    mat4.scale(matrix, matrix, [scale, scale, scale]);
+  if (scale[0] !== 1 || scale[1] !== 1 || scale[2] !== 1) {
+    mat4.scale(matrix, matrix, scale);
   }
 
   return matrix;
