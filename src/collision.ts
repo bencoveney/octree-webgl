@@ -16,8 +16,8 @@ const logger = logNTimes(0, 5);
 	- Cube is a poor representation of the bounding box
 */
 
-export function collisionCheck({ player, voxels }: World): boolean {
-  const entityBb = getEntityBoundingBox(player);
+export function collisionCheck({ voxels }: World, entity: Entity): boolean {
+  const entityBb = getEntityBoundingBox(entity);
   const voxelsBb = getVoxelsBoundingBox(voxels);
   const isColliding = isBoundingBoxColliding(entityBb, voxelsBb);
   if (isColliding) {

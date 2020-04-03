@@ -11,7 +11,7 @@ import { collisionCheck } from "./collision";
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
   camera: SceneGraph.SceneGraphNode;
-  player: Entity;
+  entities: Entity[];
   voxels: Voxels.Voxels;
   ambientLightColor: vec3;
   directionalLightColor: vec3;
@@ -23,19 +23,21 @@ export function create(
   ambientLightColor: vec3,
   directionalLightColor: vec3,
   directionalLightDirection: vec3,
-  player: Entity,
+  entities: Entity[],
   voxels: Voxels.Voxels
 ): World {
   const sceneGraph = SceneGraph.init();
   const camera = SceneGraph.addChild(sceneGraph, cameraPosition, null);
-  SceneGraph.addChild(sceneGraph, player.position, player.model);
+  entities.forEach(entity =>
+    SceneGraph.addChild(sceneGraph, entity.position, entity.model)
+  );
   return {
     sceneGraph,
     camera,
     ambientLightColor,
     directionalLightColor,
     directionalLightDirection,
-    player,
+    entities,
     voxels
   };
 }
@@ -44,13 +46,24 @@ export function setUpWorld(): World {
   const depth = 5;
   const size = Math.pow(2, depth);
 
-  const player: Entity = {
-    position: Position.create(0, size * 2, 0, 2),
+  const halfSize = size / 2;
+  const entities: Entity[] = [
+    [-halfSize, -halfSize],
+    [-halfSize, 0],
+    [-halfSize, halfSize],
+    [0, -halfSize],
+    [0, 0],
+    [0, halfSize],
+    [halfSize, -halfSize],
+    [halfSize, 0],
+    [halfSize, halfSize]
+  ].map(([x, z]) => ({
+    position: Position.create(x, size * 2, z, 2),
     speed: vec3.create(),
     width: 2,
     height: 2,
     model: "cube"
-  };
+  }));
 
   Noise.seed(Math.random());
 
@@ -70,7 +83,7 @@ export function setUpWorld(): World {
     [0.3, 0.3, 0.3],
     [1, 1, 1],
     [0.85, 0.8, 0.75],
-    player,
+    entities,
     voxels
   );
 
@@ -89,24 +102,21 @@ export function update(
 ): void {
   world.sceneGraph.position.rotation[1] = -totalTimeMs / 4000;
 
-  const isColliding = collisionCheck(world);
-
   const theVoid = -100;
 
-  world.player.speed[1] -= 0.001;
-  vec3.add(
-    world.player.position.position,
-    world.player.position.position,
-    world.player.speed
-  );
+  world.entities.forEach(entity => {
+    const isColliding = collisionCheck(world, entity);
 
-  if (isColliding) {
-    world.player.position.position[1] =
-      world.player.position.position[1] - world.player.speed[1];
-    world.player.speed[1] = 0;
-  } else if (world.player.position.position[1] <= theVoid && !isColliding) {
-    world.player.position.position[1] = theVoid;
-    world.player.speed[1] = 0;
-  } else {
-  }
+    entity.speed[1] -= 0.001;
+    vec3.add(entity.position.position, entity.position.position, entity.speed);
+
+    if (isColliding) {
+      entity.position.position[1] =
+        entity.position.position[1] - entity.speed[1];
+      entity.speed[1] = 0;
+    } else if (entity.position.position[1] <= theVoid && !isColliding) {
+      entity.position.position[1] = theVoid;
+      entity.speed[1] = 0;
+    }
+  });
 }
