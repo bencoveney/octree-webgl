@@ -1,14 +1,9 @@
+import { listenForPress } from "../keyHandler";
+
+export const DEBUG_KEY = "i";
+
 let debug = false;
-
-window.addEventListener("keypress", event => {
-  if (event.repeat) {
-    return;
-  }
-
-  if (event.key.toLowerCase() === "d") {
-    debug = !debug;
-  }
-});
+listenForPress(DEBUG_KEY, () => (debug = !debug));
 
 export function getDebugMode(): boolean {
   return debug;

@@ -22,7 +22,7 @@ export const noise: VoxelFactory = (x, y, z) => {
 };
 
 export const terrain: VoxelFactory = (x, y, z, _size, halfSize) => {
-  const density = Noise.perlin3(x / 10, y / 10, z / 10);
+  const density = Noise.perlin3(x / 100, y / 100, z / 100);
   const height = y - halfSize;
   const adjustedDensity = density - height / halfSize;
   const material =

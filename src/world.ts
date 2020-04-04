@@ -6,6 +6,8 @@ import * as ModelStore from "./render/modelStore";
 import { Entity } from "./entity";
 import { collisionCheck } from "./collision";
 import * as VoxelFactories from "./voxelFactories";
+import * as EntityFactories from "./entityFactories";
+import { isKeyDown } from "./keyHandler";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
@@ -27,7 +29,7 @@ export function create(
 ): World {
   const sceneGraph = SceneGraph.init();
   const camera = SceneGraph.addChild(sceneGraph, cameraPosition, null);
-  entities.forEach(entity => {
+  entities.forEach((entity) => {
     const entityNode = SceneGraph.addChild(
       sceneGraph,
       entity.position,
@@ -42,7 +44,7 @@ export function create(
     directionalLightColor,
     directionalLightDirection,
     entities,
-    voxels
+    voxels,
   };
 }
 
@@ -50,28 +52,11 @@ export function setUpWorld(): World {
   const depth = 6;
   const size = Math.pow(2, depth);
 
-  const entityOffset = size / 2 - 1;
-  const entities: Entity[] = [
-    [-entityOffset, -entityOffset],
-    [-entityOffset, 0],
-    [-entityOffset, entityOffset],
-    [0, -entityOffset],
-    [0, 0],
-    [0, entityOffset],
-    [entityOffset, -entityOffset],
-    [entityOffset, 0],
-    [entityOffset, entityOffset]
-  ].map(([x, z]) => ({
-    position: Position.create([x, size, z], [1, 2, 1]),
-    speed: vec3.create(),
-    width: 1,
-    height: 2,
-    model: "cube"
-  }));
-
   const voxels = Voxels.create(size, VoxelFactories.terrain);
   const faces = Voxels.voxelsToMesh(voxels);
   ModelStore.storeModel("cubegen", faces);
+
+  const entities = EntityFactories.center(size);
 
   const world = create(
     Position.create([0, 0, size + depth * 8]),
@@ -93,25 +78,54 @@ export function setUpWorld(): World {
 export function update(
   world: World,
   _deltaTimeMs: number,
-  totalTimeMs: number
+  _totalTimeMs: number
 ): void {
-  world.sceneGraph.position.rotation[1] = -totalTimeMs / 4000;
-
   const theVoid = -100;
 
-  world.entities.forEach(entity => {
+  const entitySpeedChange = getEntitySpeedChange();
+
+  world.entities.forEach((entity) => {
     const isColliding = collisionCheck(world, entity);
 
     entity.speed[1] -= 0.001;
+    vec3.add(entity.speed, entity.speed, entitySpeedChange);
     vec3.add(entity.position.position, entity.position.position, entity.speed);
 
     if (isColliding) {
       entity.position.position[1] =
         entity.position.position[1] - entity.speed[1];
+      vec3.zero(entity.speed);
       entity.speed[1] = 0;
     } else if (entity.position.position[1] <= theVoid && !isColliding) {
       entity.position.position[1] = theVoid;
       entity.speed[1] = 0;
     }
   });
+}
+
+const GRAVITY = -0.001;
+
+function getEntitySpeedChange(): vec3 {
+  let deltaX = 0;
+  if (isKeyDown("a")) {
+    deltaX -= 0.1;
+  }
+  if (isKeyDown("d")) {
+    deltaX += 0.1;
+  }
+
+  let deltaY = GRAVITY;
+  if (isKeyDown(" ")) {
+    deltaY += 0.1;
+  }
+
+  let deltaZ = 0;
+  if (isKeyDown("w")) {
+    deltaZ -= 0.1;
+  }
+  if (isKeyDown("s")) {
+    deltaZ += 0.1;
+  }
+
+  return vec3.fromValues(deltaX, deltaY, deltaZ);
 }

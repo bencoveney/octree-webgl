@@ -6,7 +6,7 @@ import { model as cubeModel } from "./render/models/cubeModel";
 import { model as axisModel } from "./render/models/axisModel";
 import { render } from "./render/render";
 import * as ModelStore from "./render/modelStore";
-import { getDebugMode } from "./debug/debugMode";
+import { getDebugMode, DEBUG_KEY } from "./debug/debugMode";
 import { setUpWorld, update } from "./world";
 
 function main() {
@@ -28,7 +28,7 @@ function main() {
     render(gl, shaders, world);
 
     setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
-debug: ${getDebugMode()} (press D to toggle)`);
+debug: ${getDebugMode()} (press ${DEBUG_KEY.toUpperCase()} to toggle)`);
   });
 }
 
