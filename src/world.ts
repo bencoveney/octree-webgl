@@ -47,7 +47,7 @@ export function create(
 }
 
 export function setUpWorld(): World {
-  const depth = 5;
+  const depth = 6;
   const size = Math.pow(2, depth);
 
   const entityOffset = size / 2 - 1;
@@ -69,7 +69,7 @@ export function setUpWorld(): World {
     model: "cube"
   }));
 
-  const voxels = Voxels.create(size, VoxelFactories.noise);
+  const voxels = Voxels.create(size, VoxelFactories.terrain);
   const faces = Voxels.voxelsToMesh(voxels);
   ModelStore.storeModel("cubegen", faces);
 

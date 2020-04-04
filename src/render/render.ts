@@ -35,7 +35,7 @@ function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
     (gl.canvas as HTMLCanvasElement).clientWidth /
     (gl.canvas as HTMLCanvasElement).clientHeight;
   const zNear = 0.1;
-  const zFar = 100;
+  const zFar = 500;
 
   const projectionMatrix = mat4.create();
   mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
