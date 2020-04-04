@@ -1,12 +1,9 @@
 import { Entity } from "./entity";
 import { Voxels } from "./voxels";
 import { World } from "./world";
-import { logNTimes } from "./utils";
 import { getMaterial, Material } from "./voxel";
 
 console.clear();
-
-const logger = logNTimes(0, 5);
 
 /*
 	Problems:
@@ -21,9 +18,6 @@ export function collisionCheck({ voxels }: World, entity: Entity): boolean {
   const isColliding = isBoundingBoxColliding(entityBb, voxelsBb);
   if (isColliding) {
     const isReallyColliding = getVoxelsCollision(entityBb, voxels);
-    if (isReallyColliding.length > 0) {
-      logger("collision!", isReallyColliding);
-    }
     return isReallyColliding.length > 0;
   }
   return false;
@@ -94,26 +88,25 @@ function getVoxelsCollision(
     // Transform into "voxel space"
     const voxelX = x + voxelOffset;
     // Quit early if the voxel space value would be outside the voxels
-    // Q: shouldn't it be voxelX > voxelsSize?
-    if (voxelX > voxelsSize || voxelX < 0) {
+    if (voxelX >= voxelsSize || voxelX < 0) {
       continue;
     }
     // Repeat the above for Y and Z co-ords
     for (let y = entityBoundingBox.yMin; y < entityBoundingBox.yMax; y++) {
       const voxelY = y + voxelOffset;
-      if (voxelY > voxelsSize || voxelY < 0) {
+      if (voxelY >= voxelsSize || voxelY < 0) {
         continue;
       }
       for (let z = entityBoundingBox.zMin; z < entityBoundingBox.zMax; z++) {
         const voxelZ = z + voxelOffset;
-        if (voxelZ > voxelsSize || voxelZ < 0) {
+        if (voxelZ >= voxelsSize || voxelZ < 0) {
           continue;
         }
         // Now that we have a valid location, collide if it isn't air.
         const voxel = voxels.get(voxelX, voxelY, voxelZ);
         const material = getMaterial(voxel);
         if (material === Material.AIR) {
-          break;
+          continue;
         }
         colliding.push([x, y, z]);
       }

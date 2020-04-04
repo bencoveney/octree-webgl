@@ -3,10 +3,9 @@ import * as Voxels from "./voxels";
 import * as SceneGraph from "./sceneGraph";
 import { vec3 } from "gl-matrix";
 import * as ModelStore from "./render/modelStore";
-import * as Voxel from "./voxel";
-import * as Noise from "simplenoise";
 import { Entity } from "./entity";
 import { collisionCheck } from "./collision";
+import * as VoxelFactories from "./voxelFactories";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
@@ -28,9 +27,14 @@ export function create(
 ): World {
   const sceneGraph = SceneGraph.init();
   const camera = SceneGraph.addChild(sceneGraph, cameraPosition, null);
-  entities.forEach(entity =>
-    SceneGraph.addChild(sceneGraph, entity.position, entity.model)
-  );
+  entities.forEach(entity => {
+    const entityNode = SceneGraph.addChild(
+      sceneGraph,
+      entity.position,
+      entity.model
+    );
+    SceneGraph.addChild(entityNode, Position.init(), "axis");
+  });
   return {
     sceneGraph,
     camera,
@@ -46,35 +50,26 @@ export function setUpWorld(): World {
   const depth = 5;
   const size = Math.pow(2, depth);
 
-  const halfSize = size / 2;
+  const entityOffset = size / 2 - 1;
   const entities: Entity[] = [
-    [-halfSize, -halfSize],
-    [-halfSize, 0],
-    [-halfSize, halfSize],
-    [0, -halfSize],
+    [-entityOffset, -entityOffset],
+    [-entityOffset, 0],
+    [-entityOffset, entityOffset],
+    [0, -entityOffset],
     [0, 0],
-    [0, halfSize],
-    [halfSize, -halfSize],
-    [halfSize, 0],
-    [halfSize, halfSize]
+    [0, entityOffset],
+    [entityOffset, -entityOffset],
+    [entityOffset, 0],
+    [entityOffset, entityOffset]
   ].map(([x, z]) => ({
-    position: Position.create([x, size * 2, z], [1, 2, 1]),
+    position: Position.create([x, size, z], [1, 2, 1]),
     speed: vec3.create(),
-    width: 2,
+    width: 1,
     height: 2,
     model: "cube"
   }));
 
-  Noise.seed(Math.random());
-
-  const voxels = Voxels.create(size, (x, y, z) => {
-    const color: Voxel.Color = Math.floor((x + y + z) / 5);
-    const material =
-      Noise.perlin3(x / 10, y / 10, z / 10) > 0.25
-        ? Voxel.Material.MATERIAL_1
-        : Voxel.Material.AIR;
-    return Voxel.create(material, color);
-  });
+  const voxels = Voxels.create(size, VoxelFactories.noise);
   const faces = Voxels.voxelsToMesh(voxels);
   ModelStore.storeModel("cubegen", faces);
 
