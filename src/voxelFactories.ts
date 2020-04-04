@@ -10,7 +10,7 @@ function diagonalColor(x: number, y: number, z: number): Voxel.Color {
 }
 
 function heightColor(_x: number, y: number, _z: number): Voxel.Color {
-  return Math.floor(y / 2);
+  return Math.floor(y / 3);
 }
 
 export const noise: VoxelFactory = (x, y, z) => {

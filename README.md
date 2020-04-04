@@ -6,10 +6,14 @@
 - [WebGL Fundamentals: Instanced Drawing](https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html)
 - [Color Palette](https://lospec.com/palette-list/zughy-32)
 
-# things to try
+# Things to try
 
 Collision
 Raycasting
 Camera controls
 Chunks
 Terrain
+Memory usage improvement
+
+- Use typed arrays for more things
+- Send color palette to shader
