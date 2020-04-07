@@ -8,7 +8,6 @@
 
 # Things to try
 
-Collision
 Raycasting
 Camera controls
 Chunks

@@ -4,17 +4,9 @@ import { World } from "./world";
 import { getMaterial, Material } from "./voxel";
 import { vec3 } from "gl-matrix";
 
-console.clear();
-
-/*
-	Problems:
-	- The entityBb for vertical collisions is happening 1 to early,
-			probably due to fractional overlap
-	- Collisions do not resolve really - entity is "embedded" at high speeds
-*/
-
-let lastLog: string = "";
 const SPEED_LIMIT = 0.1;
+
+const collisionResolutionOrder = [[1], [0], [2], [0, 1], [1, 2], [0, 2]];
 
 export function collisionCheck(
   { voxels }: World,
@@ -24,6 +16,8 @@ export function collisionCheck(
   const clampedSpeed = vec3.clone(desiredSpeed);
 
   if (vec3.length(clampedSpeed) > SPEED_LIMIT) {
+    // Clamping X, Y and Z means you fall slower when sliding down a wall.
+    // Perhaps only clamp X and Z?
     vec3.normalize(clampedSpeed, clampedSpeed);
     vec3.scale(clampedSpeed, clampedSpeed, SPEED_LIMIT);
   }
@@ -31,60 +25,70 @@ export function collisionCheck(
   const desiredPosition = vec3.clone(entity.position.position);
   vec3.add(desiredPosition, desiredPosition, clampedSpeed);
 
-  const entityBb = getEntityBoundingBox(entity);
+  const entityBb = getEntityBoundingBox(entity, desiredPosition);
   const clampedBb = clampBoundingBox(entityBb);
   const voxelsBb = getVoxelsBoundingBox(voxels);
+
+  // Prefer fast collision check
   const isColliding = isBoundingBoxColliding(clampedBb, voxelsBb);
+
   if (isColliding) {
+    // Fall back to slow collision check
     const voxelCollisionPoints = getVoxelsCollision(clampedBb, voxels);
 
-    let movingPositiveX: boolean = desiredSpeed[0] > 0;
-    let movingPositiveY: boolean = desiredSpeed[1] > 0;
-    let movingPositiveZ: boolean = desiredSpeed[2] > 0;
+    if (voxelCollisionPoints.length !== 0) {
+      let movingPositiveX: boolean = desiredSpeed[0] > 0;
+      let movingPositiveY: boolean = desiredSpeed[1] > 0;
+      let movingPositiveZ: boolean = desiredSpeed[2] > 0;
 
-    let isCollidingX: boolean = false;
-    let isCollidingY: boolean = false;
-    let isCollidingZ: boolean = false;
+      // TODO: Does this functionally make any difference?
+      const collisionDirections = getCollisionDirections(
+        clampedBb,
+        movingPositiveX,
+        movingPositiveY,
+        movingPositiveZ,
+        voxelCollisionPoints
+      );
 
-    for (const collisionPoint of voxelCollisionPoints) {
-      // TODO: See if resolving individual collisions would fix anything to support sliding.
+      // Reuse these rather than creating new ones for each iteration.
+      const revisedSpeed = vec3.create();
+      const revisedPosition = vec3.create();
 
-      if (!movingPositiveY && collisionPoint[1] <= clampedBb.yMin) {
-        isCollidingY = true;
-        clampedSpeed[1] = 0;
-        desiredPosition[1] = entity.position.position[1];
+      // Try and resolve the collision along as few axis as possible.
+      // This should allow sliding along the other ones.
+      for (const resolutionAxis of collisionResolutionOrder) {
+        // Check whether collision actually happened along this axis.
+        let isCollisionInThisAxis = true;
+        for (const axis of resolutionAxis) {
+          isCollisionInThisAxis =
+            isCollisionInThisAxis && collisionDirections[axis];
+        }
+        if (isCollisionInThisAxis) {
+          // Cancel speed along the axis we are testing.
+          vec3.copy(revisedSpeed, clampedSpeed);
+          for (const axis of resolutionAxis) {
+            revisedSpeed[axis] = 0;
+          }
+
+          // Re-calculate the possible possition using the new speed calculation
+          vec3.copy(revisedPosition, entity.position.position);
+          vec3.add(revisedPosition, revisedPosition, revisedSpeed);
+          const entityBb = getEntityBoundingBox(entity, revisedPosition);
+          const clampedBb = clampBoundingBox(entityBb);
+
+          // Test to see if the collsion has resolved itself.
+          const voxelCollisionPoints = getVoxelsCollision(clampedBb, voxels);
+          if (voxelCollisionPoints.length === 0) {
+            // If it has, great!
+            entity.speed = revisedSpeed;
+            entity.position.position = revisedPosition;
+            return;
+          }
+        }
       }
-      if (movingPositiveY && collisionPoint[1] >= clampedBb.yMax - 1) {
-        isCollidingY = true;
-        clampedSpeed[1] = 0;
-        desiredPosition[1] = entity.position.position[1];
-      }
-      if (!movingPositiveX && collisionPoint[0] <= clampedBb.xMin) {
-        isCollidingX = true;
-        clampedSpeed[0] = 0;
-        desiredPosition[0] = entity.position.position[0];
-      }
-      if (movingPositiveX && collisionPoint[0] >= clampedBb.xMax - 1) {
-        isCollidingX = true;
-        clampedSpeed[0] = 0;
-        desiredPosition[0] = entity.position.position[0];
-      }
-      if (!movingPositiveZ && collisionPoint[2] <= clampedBb.zMin) {
-        isCollidingZ = true;
-        clampedSpeed[2] = 0;
-        desiredPosition[2] = entity.position.position[2];
-      }
-      if (movingPositiveZ && collisionPoint[2] >= clampedBb.zMax - 1) {
-        isCollidingZ = true;
-        clampedSpeed[2] = 0;
-        desiredPosition[2] = entity.position.position[2];
-      }
-    }
-    const unknownCollision = !isCollidingX && !isCollidingY && !isCollidingZ;
-    const nextLog = `X:${isCollidingX} Y:${isCollidingY} Z:${isCollidingZ} ?:${unknownCollision}`;
-    if (nextLog !== lastLog) {
-      console.log(nextLog);
-      lastLog = nextLog;
+
+      entity.speed = vec3.create();
+      return;
     }
   }
 
@@ -101,18 +105,20 @@ type BoundingBox = {
   zMax: number;
 };
 
-function getEntityBoundingBox(entity: Entity): BoundingBox {
-  const basePosition = entity.position.position;
+function getEntityBoundingBox(
+  entity: Entity,
+  position: vec3 = entity.position.position
+): BoundingBox {
   const halfSize = entity.width;
   const halfHeight = entity.height;
 
   return {
-    xMin: basePosition[0] - halfSize,
-    xMax: basePosition[0] + halfSize,
-    yMin: basePosition[1] - halfHeight,
-    yMax: basePosition[1] + halfHeight,
-    zMin: basePosition[2] - halfSize,
-    zMax: basePosition[2] + halfSize,
+    xMin: position[0] - halfSize,
+    xMax: position[0] + halfSize,
+    yMin: position[1] - halfHeight,
+    yMax: position[1] + halfHeight,
+    zMin: position[2] - halfSize,
+    zMax: position[2] + halfSize,
   };
 }
 
@@ -165,7 +171,6 @@ function getVoxelsCollision(
   const colliding: CollidingVoxel[] = [];
 
   // For each voxel in "world space"
-  // TODO: Optimise by only checking the overlap region?
   for (let x = entityBoundingBox.xMin; x < entityBoundingBox.xMax; x++) {
     // Transform into "voxel space"
     const voxelX = x + voxelOffset;
@@ -195,4 +200,37 @@ function getVoxelsCollision(
     }
   }
   return colliding;
+}
+
+function getCollisionDirections(
+  clampedBoundingBox: BoundingBox,
+  movingPositiveX: boolean,
+  movingPositiveY: boolean,
+  movingPositiveZ: boolean,
+  voxelCollisionPoints: CollidingVoxel[]
+): boolean[] {
+  const result = [false, false, false];
+
+  for (const collisionPoint of voxelCollisionPoints) {
+    if (!movingPositiveX && collisionPoint[0] <= clampedBoundingBox.xMin) {
+      result[0] = true;
+    }
+    if (movingPositiveX && collisionPoint[0] >= clampedBoundingBox.xMax - 1) {
+      result[0] = true;
+    }
+    if (!movingPositiveY && collisionPoint[1] <= clampedBoundingBox.yMin) {
+      result[1] = true;
+    }
+    if (movingPositiveY && collisionPoint[1] >= clampedBoundingBox.yMax - 1) {
+      result[1] = true;
+    }
+    if (!movingPositiveZ && collisionPoint[2] <= clampedBoundingBox.zMin) {
+      result[2] = true;
+    }
+    if (movingPositiveZ && collisionPoint[2] >= clampedBoundingBox.zMax - 1) {
+      result[2] = true;
+    }
+  }
+
+  return result;
 }
