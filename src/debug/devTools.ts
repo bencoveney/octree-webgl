@@ -10,6 +10,11 @@ export function initDevTools(): void {
   document.body.appendChild(devTools);
 }
 
+let lastText: string = "";
+
 export function setDevToolsText(text: string): void {
-  devTools.innerText = text;
+  if (text != lastText) {
+    devTools.innerText = text;
+    lastText = text;
+  }
 }

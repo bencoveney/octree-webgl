@@ -80,32 +80,18 @@ export function update(
   _deltaTimeMs: number,
   _totalTimeMs: number
 ): void {
-  const theVoid = -100;
-
-  const entitySpeedChange = getEntitySpeedChange();
+  const speedDelta = getDesiredSpeedDelta();
 
   world.entities.forEach((entity) => {
-    const isColliding = collisionCheck(world, entity);
-
-    entity.speed[1] -= 0.001;
-    vec3.add(entity.speed, entity.speed, entitySpeedChange);
-    vec3.add(entity.position.position, entity.position.position, entity.speed);
-
-    if (isColliding) {
-      entity.position.position[1] =
-        entity.position.position[1] - entity.speed[1];
-      vec3.zero(entity.speed);
-      entity.speed[1] = 0;
-    } else if (entity.position.position[1] <= theVoid && !isColliding) {
-      entity.position.position[1] = theVoid;
-      entity.speed[1] = 0;
-    }
+    const desiredSpeed = vec3.clone(entity.speed);
+    vec3.add(desiredSpeed, desiredSpeed, speedDelta);
+    collisionCheck(world, entity, desiredSpeed);
   });
 }
 
 const GRAVITY = -0.001;
 
-function getEntitySpeedChange(): vec3 {
+function getDesiredSpeedDelta(): vec3 {
   let deltaX = 0;
   if (isKeyDown("a")) {
     deltaX -= 0.1;

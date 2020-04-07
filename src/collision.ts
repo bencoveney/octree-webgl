@@ -2,6 +2,7 @@ import { Entity } from "./entity";
 import { Voxels } from "./voxels";
 import { World } from "./world";
 import { getMaterial, Material } from "./voxel";
+import { vec3 } from "gl-matrix";
 
 console.clear();
 
@@ -13,66 +14,100 @@ console.clear();
 */
 
 let lastLog: string = "";
+const SPEED_LIMIT = 0.5;
 
-export function collisionCheck({ voxels }: World, entity: Entity): boolean {
+export function collisionCheck(
+  { voxels }: World,
+  entity: Entity,
+  desiredSpeed: vec3
+): void {
+  const clampedSpeed = vec3.clone(desiredSpeed);
+
+  if (vec3.length(clampedSpeed) > SPEED_LIMIT) {
+    vec3.normalize(clampedSpeed, clampedSpeed);
+    vec3.scale(clampedSpeed, clampedSpeed, SPEED_LIMIT);
+  }
+
+  const desiredPosition = vec3.clone(entity.position.position);
+  vec3.add(desiredPosition, desiredPosition, clampedSpeed);
+
   const entityBb = getEntityBoundingBox(entity);
   const voxelsBb = getVoxelsBoundingBox(voxels);
   const isColliding = isBoundingBoxColliding(entityBb, voxelsBb);
   if (isColliding) {
     const voxelCollisionPoints = getVoxelsCollision(entityBb, voxels);
 
-    let negativeX: boolean = false;
-    let positiveX: boolean = false;
-    let negativeY: boolean = false;
-    let positiveY: boolean = false;
-    let negativeZ: boolean = false;
-    let positiveZ: boolean = false;
-    let unknown: boolean = false;
+    let movingPositiveX: boolean = desiredSpeed[0] > 0;
+    let movingPositiveY: boolean = desiredSpeed[1] > 0;
+    let movingPositiveZ: boolean = desiredSpeed[2] > 0;
+
+    let isCollidingX: boolean = false;
+    let isCollidingY: boolean = false;
+    let isCollidingZ: boolean = false;
 
     for (const collisionPoint of voxelCollisionPoints) {
-      // Order is significant
-      // Move out of the floor first - most common (faster), more important.
-      // TODO: Skip checks based on velocity?
-      if (isCollidingNegativeY(entity, collisionPoint)) {
-        negativeY = true;
-        continue;
-      }
+      // TODO: See if resolving individual collisions would fix anything to support sliding.
 
-      if (isCollidingNegativeX(entity, collisionPoint)) {
-        negativeX = true;
-        // TODO: See if resolving this collision would fix anything,
-        // otherwise we might be sliding - Moving back/above should be considered
-        // as alternatives.
+      if (
+        !movingPositiveY &&
+        isCollidingNegativeY(entity, entity.position.position, collisionPoint)
+      ) {
+        if (getVoxelsCollision(entityBb, voxels)) isCollidingY = true;
+        clampedSpeed[1] = 0;
+        desiredPosition[1] = entity.position.position[1];
       }
-      if (isCollidingPositiveX(entity, collisionPoint)) {
-        positiveX = true;
-      }
-      if (isCollidingNegativeZ(entity, collisionPoint)) {
-        negativeZ = true;
-      }
-      if (isCollidingPositiveZ(entity, collisionPoint)) {
-        positiveZ = true;
-      }
+      if (
+        movingPositiveY &&
+        isCollidingPositiveY(entity, entity.position.position, collisionPoint)
+      ) {
+        isCollidingY = true;
+        clampedSpeed[1] = 0;
 
-      if (negativeX || positiveX || negativeX || positiveX) {
-        continue;
+        desiredPosition[1] = entity.position.position[1];
       }
-
-      if (isCollidingPositiveY(entity, collisionPoint)) {
-        // Less worries about top collisions. Leave them until last.
-        positiveY = true;
-        continue;
+      if (
+        !movingPositiveX &&
+        isCollidingNegativeX(entity, entity.position.position, collisionPoint)
+      ) {
+        isCollidingX = true;
+        clampedSpeed[0] = 0;
+        desiredPosition[0] = entity.position.position[0];
       }
-      unknown = true;
+      if (
+        movingPositiveX &&
+        isCollidingPositiveX(entity, entity.position.position, collisionPoint)
+      ) {
+        isCollidingX = true;
+        clampedSpeed[0] = 0;
+        desiredPosition[0] = entity.position.position[0];
+      }
+      if (
+        !movingPositiveZ &&
+        isCollidingNegativeZ(entity, entity.position.position, collisionPoint)
+      ) {
+        isCollidingZ = true;
+        clampedSpeed[2] = 0;
+        desiredPosition[2] = entity.position.position[2];
+      }
+      if (
+        movingPositiveZ &&
+        isCollidingPositiveZ(entity, entity.position.position, collisionPoint)
+      ) {
+        isCollidingZ = true;
+        clampedSpeed[2] = 0;
+        desiredPosition[2] = entity.position.position[2];
+      }
     }
-    let nextLog = `X[${negativeX},${positiveX}] Y[${negativeY},${positiveY}] Z[${negativeZ},${positiveZ}] ?${unknown}`;
+    const unknownCollision = !isCollidingX && !isCollidingY && !isCollidingZ;
+    const nextLog = `X:${isCollidingX} Y:${isCollidingY} Z:${isCollidingZ} ?:${unknownCollision}`;
     if (nextLog !== lastLog) {
       console.log(nextLog);
       lastLog = nextLog;
     }
-    return voxelCollisionPoints.length > 0;
   }
-  return false;
+
+  entity.speed = clampedSpeed;
+  entity.position.position = desiredPosition;
 }
 
 type BoundingBox = {
@@ -171,49 +206,55 @@ function getVoxelsCollision(
 
 function isCollidingNegativeX(
   entity: Entity,
+  position: vec3,
   collisionPoint: CollidingVoxel
 ): boolean {
-  const edge = entity.position.position[0] - entity.width / 2;
+  const edge = position[0] - entity.width / 2;
   return collisionPoint[0] < edge;
 }
 
 function isCollidingPositiveX(
   entity: Entity,
+  position: vec3,
   collisionPoint: CollidingVoxel
 ): boolean {
-  const edge = entity.position.position[0] + entity.width / 2 - 1;
+  const edge = position[0] + entity.width / 2 - 1;
   return collisionPoint[0] > edge;
 }
 
 function isCollidingNegativeY(
   entity: Entity,
+  position: vec3,
   collisionPoint: CollidingVoxel
 ): boolean {
-  const entityBottom = entity.position.position[1] - entity.height;
+  const entityBottom = position[1] - entity.height;
   return collisionPoint[1] < entityBottom;
 }
 
 // Untested
 function isCollidingPositiveY(
   entity: Entity,
+  position: vec3,
   collisionPoint: CollidingVoxel
 ): boolean {
-  const entityBottom = entity.position.position[1] + entity.height / 2 - 1;
+  const entityBottom = position[1] + entity.height / 2 - 1;
   return collisionPoint[1] > entityBottom;
 }
 
 function isCollidingNegativeZ(
   entity: Entity,
+  position: vec3,
   collisionPoint: CollidingVoxel
 ): boolean {
-  const edge = entity.position.position[2] - entity.width / 2;
+  const edge = position[2] - entity.width / 2;
   return collisionPoint[2] < edge;
 }
 
 function isCollidingPositiveZ(
   entity: Entity,
+  position: vec3,
   collisionPoint: CollidingVoxel
 ): boolean {
-  const edge = entity.position.position[2] + entity.width / 2 - 1;
+  const edge = position[2] + entity.width / 2 - 1;
   return collisionPoint[2] > edge;
 }

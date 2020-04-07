@@ -28,7 +28,9 @@ function main() {
     render(gl, shaders, world);
 
     setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
-debug: ${getDebugMode()} (press ${DEBUG_KEY.toUpperCase()} to toggle)`);
+debug: ${getDebugMode()} (press ${DEBUG_KEY.toUpperCase()} to toggle)
+move: W,A,S,D
+jump: Space`);
   });
 }
 
