@@ -16,6 +16,9 @@ export function collisionCheck(
   entity: Entity,
   desiredSpeed: vec3
 ): void {
+  // Assume we're in the air now, unless a collision tells us otherwise.
+  entity.isGrounded = false;
+
   const clampedSpeed = vec3.clone(desiredSpeed);
 
   // Limit speed horizontally. The player shouldn't be able to run as fast as they like, but they
@@ -73,6 +76,12 @@ export function collisionCheck(
             revisedSpeed[axis] = 0;
           }
 
+          // If we're moving out of the floor, apply friction.
+          if (!movingPositiveY && resolutionAxis.indexOf(1) >= 0) {
+            revisedSpeed[0] = revisedSpeed[0] / 1.1;
+            revisedSpeed[2] = revisedSpeed[2] / 1.1;
+          }
+
           // Re-calculate the possible possition using the new speed calculation
           vec3.copy(revisedPosition, entity.position.position);
           vec3.add(revisedPosition, revisedPosition, revisedSpeed);
@@ -82,9 +91,16 @@ export function collisionCheck(
           // Test to see if the collsion has resolved itself.
           const voxelCollisionPoints = getVoxelsCollision(clampedBb, voxels);
           if (voxelCollisionPoints.length === 0) {
+            // Check if we resolved the collision by moving out of the floor.
+            if (!movingPositiveY && resolutionAxis.indexOf(1) >= 0) {
+              entity.isGrounded = true;
+            }
+
             // If it has, great!
             entity.speed = revisedSpeed;
             entity.position.position = revisedPosition;
+
+            // Avoid resolving any more collisions.
             return;
           }
         }

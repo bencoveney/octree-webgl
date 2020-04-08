@@ -7,4 +7,5 @@ export type Entity = {
   width: number;
   height: number;
   model: string;
+  isGrounded: boolean;
 };

@@ -20,6 +20,7 @@ export function corners(size: number): Entity[] {
     width: 1,
     height: 2,
     model: "cube",
+    isGrounded: false,
   }));
 }
 
@@ -31,6 +32,7 @@ export function center(size: number): Entity[] {
       width: 1,
       height: 2,
       model: "cube",
+      isGrounded: false,
     },
   ];
 }

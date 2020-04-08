@@ -90,7 +90,11 @@ export function update(
 
   world.entities.forEach((entity) => {
     const desiredSpeed = vec3.clone(entity.speed);
-    vec3.add(desiredSpeed, desiredSpeed, speedDelta);
+    if (entity.isGrounded) {
+      vec3.add(desiredSpeed, desiredSpeed, speedDelta);
+    } else {
+      desiredSpeed[1] += GRAVITY;
+    }
     collisionCheck(world, entity, desiredSpeed);
   });
 
