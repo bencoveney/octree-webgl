@@ -8,8 +8,8 @@
 
 # Things to try
 
+Lighting is relative to the camera?
 Raycasting
-Camera controls
 Chunks
 Terrain
 Memory usage improvement

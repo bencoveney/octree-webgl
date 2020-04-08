@@ -10,7 +10,7 @@ export function init(): Position {
   return {
     position: [0, 0, 0],
     rotation: [0, 0, 0],
-    scale: [1, 1, 1]
+    scale: [1, 1, 1],
   };
 }
 
@@ -18,7 +18,7 @@ export function create(position: vec3, scale: vec3 = [1, 1, 1]): Position {
   return {
     position,
     rotation: [0, 0, 0],
-    scale
+    scale,
   };
 }
 
@@ -27,11 +27,12 @@ export function toMatrix({ position, rotation, scale }: Position): mat4 {
   mat4.translate(matrix, matrix, position);
 
   const [x, y, z] = rotation;
-  if (x) {
-    mat4.rotateX(matrix, matrix, x);
-  }
+  // Ordered this way just to support camera rotation.
   if (y) {
     mat4.rotateY(matrix, matrix, y);
+  }
+  if (x) {
+    mat4.rotateX(matrix, matrix, x);
   }
   if (z) {
     mat4.rotateZ(matrix, matrix, z);

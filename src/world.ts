@@ -67,10 +67,19 @@ export function setUpWorld(): World {
     voxels
   );
 
-  world.sceneGraph.position.rotation[0] = 0.5;
-
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
   SceneGraph.addChild(world.sceneGraph, Position.init(), "cubegen");
+
+  window.addEventListener("mousemove", (event) => {
+    world.camera.position.rotation[1] -= event.movementX / 200;
+    world.camera.position.rotation[0] = Math.max(
+      Math.min(
+        world.camera.position.rotation[0] - event.movementY / 100,
+        Math.PI / 2
+      ),
+      -Math.PI / 2
+    );
+  });
 
   return world;
 }
@@ -82,11 +91,29 @@ export function update(
 ): void {
   const speedDelta = getDesiredSpeedDelta();
 
+  vec3.rotateY(
+    speedDelta,
+    speedDelta,
+    vec3.create(),
+    world.camera.position.rotation[1]
+  );
+
   world.entities.forEach((entity) => {
     const desiredSpeed = vec3.clone(entity.speed);
     vec3.add(desiredSpeed, desiredSpeed, speedDelta);
     collisionCheck(world, entity, desiredSpeed);
   });
+
+  vec3.copy(
+    world.camera.position.position,
+    world.entities[0].position.position
+  );
+  vec3.add(
+    world.camera.position.position,
+    world.camera.position.position,
+    vec3.fromValues(0, 2, 0)
+  );
+  vec3.copy(world.camera.position.scale, world.entities[0].position.scale);
 }
 
 const GRAVITY = -0.001;
