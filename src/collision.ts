@@ -6,6 +6,9 @@ import { vec3 } from "gl-matrix";
 
 const SPEED_LIMIT = 0.1;
 
+// The order in which to "undo" movement when resolving collisions.
+// Resolve vertical collisions first as walking on the floor will be the most common.
+// Prefer less dimensions to allow sliding along other dimensions.
 const collisionResolutionOrder = [[1], [0], [2], [0, 1], [1, 2], [0, 2]];
 
 export function collisionCheck(
@@ -15,11 +18,13 @@ export function collisionCheck(
 ): void {
   const clampedSpeed = vec3.clone(desiredSpeed);
 
-  if (vec3.length(clampedSpeed) > SPEED_LIMIT) {
-    // Clamping X, Y and Z means you fall slower when sliding down a wall.
-    // Perhaps only clamp X and Z?
-    vec3.normalize(clampedSpeed, clampedSpeed);
-    vec3.scale(clampedSpeed, clampedSpeed, SPEED_LIMIT);
+  // Limit speed horizontally. The player shouldn't be able to run as fast as they like, but they
+  // should be able to fall as fast as they like.
+  const horizontalSpeed = Math.hypot(clampedSpeed[0], clampedSpeed[2]);
+  if (horizontalSpeed > SPEED_LIMIT) {
+    const scale = horizontalSpeed / SPEED_LIMIT;
+    clampedSpeed[0] = clampedSpeed[0] / scale;
+    clampedSpeed[2] = clampedSpeed[2] / scale;
   }
 
   const desiredPosition = vec3.clone(entity.position.position);
@@ -54,8 +59,6 @@ export function collisionCheck(
       const revisedSpeed = vec3.create();
       const revisedPosition = vec3.create();
 
-      // Try and resolve the collision along as few axis as possible.
-      // This should allow sliding along the other ones.
       for (const resolutionAxis of collisionResolutionOrder) {
         // Check whether collision actually happened along this axis.
         let isCollisionInThisAxis = true;
@@ -123,6 +126,7 @@ function getEntityBoundingBox(
 }
 
 function clampBoundingBox(boundingBox: BoundingBox): BoundingBox {
+  // Expand a float bounding box so that it fits voxel boundaries.
   return {
     xMin: Math.floor(boundingBox.xMin),
     xMax: Math.ceil(boundingBox.xMax),
