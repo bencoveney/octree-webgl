@@ -6,18 +6,24 @@ import {
   getRgba,
   Voxel,
   getMaterial,
-  getColor
+  getColor,
 } from "./voxel";
 
 export type Voxels = ndarray<Voxel>;
 
-export type VoxelFactory = (x: number, y: number, z: number, size: number, halfSize: number) => Voxel;
+export type VoxelFactory = (
+  x: number,
+  y: number,
+  z: number,
+  size: number,
+  halfSize: number
+) => Voxel;
 
 export function create(size: number, factory: VoxelFactory): Voxels {
   const result = ndarray<Voxel>(new Uint8Array(size * size * size), [
     size,
     size,
-    size
+    size,
   ]);
 
   const halfSize = size / 2;
@@ -38,17 +44,17 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
     position: [],
     color: [],
     index: [],
-    normal: []
+    normal: [],
   };
+  // Assumes all dimensions are the same size.
   const size = voxels.shape[0];
-  const halfSize = size / 2;
 
   function runDimension(transpose: [number, number, number]) {
     let transposeVoxels = voxels;
     if (
       transpose
         .map((lookupIndex, index) => lookupIndex === index)
-        .some(match => !match)
+        .some((match) => !match)
     ) {
       transposeVoxels = transposeVoxels.transpose(...transpose);
     }
@@ -58,11 +64,11 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
       // Prepare a map to hold color information for both "sides" of this layer of the main dimension.
       const colorMap1_ = ndarray<Color | null>(new Array(size * size), [
         size,
-        size
+        size,
       ]);
       const colorMap2_ = ndarray<Color | null>(new Array(size * size), [
         size,
-        size
+        size,
       ]);
       // Iterate through rows and columns inside the layer.
       for (let row = 0; row < size; row++) {
@@ -259,13 +265,13 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
   ) {
     const prevIndex = result.position.length / 3;
 
-    const layerLow = layer - halfSize;
+    const layerLow = layer;
     const layerHigh = layerLow + 1;
     const layerActual = front ? layerHigh : layerLow;
 
-    const rowLow = row - halfSize;
+    const rowLow = row;
     const rowHigh = rowLow + height;
-    const columnLow = column - halfSize;
+    const columnLow = column;
     const columnHigh = columnLow + width;
 
     const transposeIndex0 = transpose.indexOf(0);

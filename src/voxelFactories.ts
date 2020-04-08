@@ -10,7 +10,7 @@ function diagonalColor(x: number, y: number, z: number): Voxel.Color {
 }
 
 function heightColor(_x: number, y: number, _z: number): Voxel.Color {
-  return Math.floor(y / 3);
+  return Math.floor(y / 3) % 32;
 }
 
 export const noise: VoxelFactory = (x, y, z) => {
@@ -28,6 +28,28 @@ export const terrain: VoxelFactory = (x, y, z, _size, halfSize) => {
   const material =
     adjustedDensity >= 0 ? Voxel.Material.MATERIAL_1 : Voxel.Material.AIR;
   return Voxel.create(material, heightColor(x, y, z));
+};
+
+export const positionedTerrain: (
+  offsetX: number,
+  offsetY: number,
+  offsetZ: number
+) => VoxelFactory = (offsetX, offsetY, offsetZ) => (
+  x,
+  y,
+  z,
+  _size,
+  halfSize
+) => {
+  const actualX = offsetX + x;
+  const actualY = offsetY + y;
+  const actualZ = offsetZ + z;
+  const density = Noise.perlin3(actualX / 100, actualY / 100, actualZ / 100);
+  const height = actualY - halfSize;
+  const adjustedDensity = density - height / halfSize;
+  const material =
+    adjustedDensity >= 0 ? Voxel.Material.MATERIAL_1 : Voxel.Material.AIR;
+  return Voxel.create(material, heightColor(actualX, actualY, actualZ));
 };
 
 export const circle: VoxelFactory = (x, y, z, _size, halfSize) => {

@@ -27,7 +27,7 @@ export function corners(size: number): Entity[] {
 export function center(size: number): Entity[] {
   return [
     {
-      position: Position.create([0, size / 2, 0], [1, 2, 1]),
+      position: Position.create([0, size, 0], [1, 2, 1]),
       speed: vec3.create(),
       width: 1,
       height: 2,

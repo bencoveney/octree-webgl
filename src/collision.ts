@@ -1,8 +1,8 @@
 import { Entity } from "./entity";
-import { Voxels } from "./voxels";
 import { World } from "./world";
 import { getMaterial, Material } from "./voxel";
 import { vec3 } from "gl-matrix";
+import * as Chunks from "./chunks";
 
 const SPEED_LIMIT = 0.1;
 
@@ -12,7 +12,7 @@ const SPEED_LIMIT = 0.1;
 const collisionResolutionOrder = [[1], [0], [2], [0, 1], [1, 2], [0, 2]];
 
 export function collisionCheck(
-  { voxels }: World,
+  { chunks }: World,
   entity: Entity,
   desiredSpeed: vec3
 ): void {
@@ -35,14 +35,25 @@ export function collisionCheck(
 
   const entityBb = getEntityBoundingBox(entity, desiredPosition);
   const clampedBb = clampBoundingBox(entityBb);
-  const voxelsBb = getVoxelsBoundingBox(voxels);
 
-  // Prefer fast collision check
-  const isColliding = isBoundingBoxColliding(clampedBb, voxelsBb);
+  // TODO: This could be smarter - we can calculate which chunks collide rather than
+  // doing a BB collision on all of them.
+  const collidingChunks: Chunks.Chunk[] = [];
+  (chunks.data as Chunks.Chunk[]).forEach((chunk) => {
+    const chunkBoundingBox = getChunkBoundingBox(chunk);
+    // Prefer fast collision check
+    const isColliding = isBoundingBoxColliding(clampedBb, chunkBoundingBox);
+    if (isColliding) {
+      collidingChunks.push(chunk);
+    }
+  });
 
-  if (isColliding) {
+  if (collidingChunks.length > 0) {
     // Fall back to slow collision check
-    const voxelCollisionPoints = getVoxelsCollision(clampedBb, voxels);
+    const voxelCollisionPoints = getVoxelsCollisionAcrossChunks(
+      clampedBb,
+      collidingChunks
+    );
 
     if (voxelCollisionPoints.length !== 0) {
       let movingPositiveX: boolean = desiredSpeed[0] > 0;
@@ -89,7 +100,10 @@ export function collisionCheck(
           const clampedBb = clampBoundingBox(entityBb);
 
           // Test to see if the collsion has resolved itself.
-          const voxelCollisionPoints = getVoxelsCollision(clampedBb, voxels);
+          const voxelCollisionPoints = getVoxelsCollisionAcrossChunks(
+            clampedBb,
+            collidingChunks
+          );
           if (voxelCollisionPoints.length === 0) {
             // Check if we resolved the collision by moving out of the floor.
             if (!movingPositiveY && resolutionAxis.indexOf(1) >= 0) {
@@ -115,7 +129,7 @@ export function collisionCheck(
   entity.position.position = desiredPosition;
 }
 
-type BoundingBox = {
+export type BoundingBox = {
   xMin: number;
   xMax: number;
   yMin: number;
@@ -153,18 +167,14 @@ function clampBoundingBox(boundingBox: BoundingBox): BoundingBox {
   };
 }
 
-function getVoxelsBoundingBox(voxels: Voxels): BoundingBox {
-  const halfSizeX = voxels.shape[0] / 2;
-  const halfSizeY = voxels.shape[1] / 2;
-  const halfSizeZ = voxels.shape[2] / 2;
-
+function getChunkBoundingBox(chunk: Chunks.Chunk): BoundingBox {
   return {
-    xMin: -halfSizeX,
-    xMax: halfSizeX,
-    yMin: -halfSizeY,
-    yMax: halfSizeY,
-    zMin: -halfSizeZ,
-    zMax: halfSizeZ,
+    xMin: chunk.originX,
+    xMax: chunk.originX + chunk.size,
+    yMin: chunk.originY,
+    yMax: chunk.originY + chunk.size,
+    zMin: chunk.originZ,
+    zMax: chunk.originZ + chunk.size,
   };
 }
 
@@ -181,36 +191,45 @@ function isBoundingBoxColliding(a: BoundingBox, b: BoundingBox): boolean {
 
 type CollidingVoxel = [number, number, number];
 
+function getVoxelsCollisionAcrossChunks(
+  entityBoundingBox: BoundingBox,
+  chunks: Chunks.Chunk[]
+): CollidingVoxel[] {
+  let result: CollidingVoxel[] = [];
+  chunks.forEach(
+    (chunk) =>
+      (result = result.concat(getVoxelsCollision(entityBoundingBox, chunk)))
+  );
+  return result;
+}
+
 function getVoxelsCollision(
   entityBoundingBox: BoundingBox,
-  voxels: Voxels
+  chunk: Chunks.Chunk
 ): CollidingVoxel[] {
-  const voxelsSize = voxels.shape[0];
-  const voxelOffset = voxelsSize / 2;
-
   const colliding: CollidingVoxel[] = [];
 
   // For each voxel in "world space"
   for (let x = entityBoundingBox.xMin; x < entityBoundingBox.xMax; x++) {
-    // Transform into "voxel space"
-    const voxelX = x + voxelOffset;
     // Quit early if the voxel space value would be outside the voxels
-    if (voxelX >= voxelsSize || voxelX < 0) {
+    if (x >= chunk.originX + chunk.size || x < chunk.originX) {
       continue;
     }
     // Repeat the above for Y and Z co-ords
     for (let y = entityBoundingBox.yMin; y < entityBoundingBox.yMax; y++) {
-      const voxelY = y + voxelOffset;
-      if (voxelY >= voxelsSize || voxelY < 0) {
+      if (y >= chunk.originY + chunk.size || y < chunk.originY) {
         continue;
       }
       for (let z = entityBoundingBox.zMin; z < entityBoundingBox.zMax; z++) {
-        const voxelZ = z + voxelOffset;
-        if (voxelZ >= voxelsSize || voxelZ < 0) {
+        if (z >= chunk.originZ + chunk.size || z < chunk.originZ) {
           continue;
         }
         // Now that we have a valid location, collide if it isn't air.
-        const voxel = voxels.get(voxelX, voxelY, voxelZ);
+        const voxel = chunk.voxels.get(
+          x - chunk.originX,
+          y - chunk.originY,
+          z - chunk.originZ
+        );
         const material = getMaterial(voxel);
         if (material === Material.AIR) {
           continue;

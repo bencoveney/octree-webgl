@@ -1,34 +1,32 @@
 import * as Position from "./position";
-import * as Voxels from "./voxels";
 import * as SceneGraph from "./sceneGraph";
 import { vec3 } from "gl-matrix";
-import * as ModelStore from "./render/modelStore";
 import { Entity } from "./entity";
 import { collisionCheck } from "./collision";
-import * as VoxelFactories from "./voxelFactories";
 import * as EntityFactories from "./entityFactories";
 import { isKeyDown } from "./keyHandler";
 import { getMovement } from "./mouseHandler";
+import * as Chunks from "./chunks";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
   camera: SceneGraph.SceneGraphNode;
   entities: Entity[];
-  voxels: Voxels.Voxels;
+  chunks: Chunks.Chunks;
   ambientLightColor: vec3;
   directionalLightColor: vec3;
   directionalLightDirection: vec3;
 };
 
 export function create(
+  sceneGraph: SceneGraph.SceneGraphNode,
   cameraPosition: Position.Position,
   ambientLightColor: vec3,
   directionalLightColor: vec3,
   directionalLightDirection: vec3,
   entities: Entity[],
-  voxels: Voxels.Voxels
+  chunks: Chunks.Chunks
 ): World {
-  const sceneGraph = SceneGraph.init();
   const camera = SceneGraph.addChild(sceneGraph, cameraPosition, null);
   entities.forEach((entity) => {
     const entityNode = SceneGraph.addChild(
@@ -45,7 +43,7 @@ export function create(
     directionalLightColor,
     directionalLightDirection,
     entities,
-    voxels,
+    chunks,
   };
 }
 
@@ -53,23 +51,22 @@ export function setUpWorld(): World {
   const depth = 6;
   const size = Math.pow(2, depth);
 
-  const voxels = Voxels.create(size, VoxelFactories.terrain);
-  const faces = Voxels.voxelsToMesh(voxels);
-  ModelStore.storeModel("cubegen", faces);
-
   const entities = EntityFactories.center(size);
 
+  const sceneGraph = SceneGraph.init();
+
   const world = create(
+    sceneGraph,
+    // TODO: Camera position should be a child of the entity.
     Position.create([0, 0, size + depth * 8]),
     [0.3, 0.3, 0.3],
     [1, 1, 1],
     [0.85, 0.8, 0.75],
     entities,
-    voxels
+    Chunks.createChunks(size, 2, sceneGraph)
   );
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
-  SceneGraph.addChild(world.sceneGraph, Position.init(), "cubegen");
 
   return world;
 }
