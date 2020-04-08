@@ -8,6 +8,7 @@ import { collisionCheck } from "./collision";
 import * as VoxelFactories from "./voxelFactories";
 import * as EntityFactories from "./entityFactories";
 import { isKeyDown } from "./keyHandler";
+import { getMovement } from "./mouseHandler";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
@@ -70,17 +71,6 @@ export function setUpWorld(): World {
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
   SceneGraph.addChild(world.sceneGraph, Position.init(), "cubegen");
 
-  window.addEventListener("mousemove", (event) => {
-    world.camera.position.rotation[1] -= event.movementX / 200;
-    world.camera.position.rotation[0] = Math.max(
-      Math.min(
-        world.camera.position.rotation[0] - event.movementY / 100,
-        Math.PI / 2
-      ),
-      -Math.PI / 2
-    );
-  });
-
   return world;
 }
 
@@ -103,6 +93,17 @@ export function update(
     vec3.add(desiredSpeed, desiredSpeed, speedDelta);
     collisionCheck(world, entity, desiredSpeed);
   });
+
+  const mouseInput = getMovement();
+
+  world.camera.position.rotation[1] -= mouseInput[0] / 400;
+  world.camera.position.rotation[0] = Math.max(
+    Math.min(
+      world.camera.position.rotation[0] - mouseInput[1] / 200,
+      Math.PI / 2
+    ),
+    -Math.PI / 2
+  );
 
   vec3.copy(
     world.camera.position.position,

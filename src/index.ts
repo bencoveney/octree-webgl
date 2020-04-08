@@ -8,6 +8,7 @@ import { render } from "./render/render";
 import * as ModelStore from "./render/modelStore";
 import { getDebugMode, DEBUG_KEY } from "./debug/debugMode";
 import { setUpWorld, update } from "./world";
+import { setUpMouseHandler } from "./mouseHandler";
 
 function main() {
   const gl = createViewport();
@@ -16,6 +17,8 @@ function main() {
 
   ModelStore.storeModel("cube", cubeModel);
   ModelStore.storeLineModel("axis", axisModel);
+
+  setUpMouseHandler(gl.canvas as HTMLCanvasElement);
 
   const world = setUpWorld();
 
