@@ -114,7 +114,6 @@ export function update(
     world.camera.position.position,
     vec3.fromValues(0, 2, 0)
   );
-  vec3.copy(world.camera.position.scale, world.entities[0].position.scale);
 }
 
 const GRAVITY = -0.001;
