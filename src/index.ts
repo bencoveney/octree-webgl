@@ -6,7 +6,7 @@ import { model as cubeModel } from "./render/models/cubeModel";
 import { model as axisModel } from "./render/models/axisModel";
 import { render } from "./render/render";
 import * as ModelStore from "./render/modelStore";
-import { getDebugMode, DEBUG_KEY } from "./debug/debugMode";
+import { DEBUG_KEY } from "./debug/debugMode";
 import { setUpWorld, update } from "./world";
 import { setUpMouseHandler } from "./mouseHandler";
 
@@ -30,10 +30,10 @@ function main() {
 
     render(gl, shaders, world);
 
-    setDevToolsText(`fps: ${Math.round(1 / deltaTimeS)}
-debug: ${getDebugMode()} (press ${DEBUG_KEY.toUpperCase()} to toggle)
-move: W,A,S,D
-jump: Space`);
+    setDevToolsText(`FPS: ${Math.round(1 / deltaTimeS)}
+Debug: ${DEBUG_KEY.toUpperCase()}
+Move: W,A,S,D
+Jump: Space`);
   });
 }
 

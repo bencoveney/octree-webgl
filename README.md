@@ -8,11 +8,11 @@
 
 # Things to try
 
-Lighting is relative to the camera?
-Raycasting
-Chunks
-Terrain
-Memory usage improvement
+- Raycasting
+- Chunks
+- Terrain
+- Lighting
 
+- Memory usage improvement
 - Use typed arrays for more things
 - Send color palette to shader
