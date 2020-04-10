@@ -9,7 +9,6 @@ import * as ModelStore from "./render/modelStore";
 import { DEBUG_KEY } from "./debug/debugMode";
 import { setUpWorld, update } from "./world";
 import { setUpMouseHandler } from "./mouseHandler";
-import "./worldGen/bridge";
 
 function main() {
   const gl = createViewport();

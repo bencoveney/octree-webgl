@@ -7,6 +7,7 @@ import * as EntityFactories from "./entityFactories";
 import { isKeyDown } from "./keyHandler";
 import { getMovement } from "./mouseHandler";
 import * as Chunks from "./chunks";
+import * as WorldGen from "./worldGen/bridge";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;
@@ -55,6 +56,17 @@ export function setUpWorld(): World {
 
   const sceneGraph = SceneGraph.init();
 
+  WorldGen.createWorld(
+    size,
+    5,
+    (message) => console.log("Got message: " + message),
+    (name) => console.log("Got model: " + name),
+    () => console.log("Done")
+  );
+
+  const chunks = Chunks.createChunks(size, 5);
+  Chunks.storeVoxelModels(chunks, sceneGraph);
+
   const world = create(
     sceneGraph,
     // TODO: Camera position should be a child of the entity.
@@ -63,7 +75,7 @@ export function setUpWorld(): World {
     [1, 1, 1],
     [0.85, 0.8, 0.75],
     entities,
-    Chunks.createChunks(size, 5, sceneGraph)
+    chunks
   );
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");

@@ -20,16 +20,7 @@ export type Chunk = {
   size: number;
 };
 
-export function createChunks(
-  chunkSize: number,
-  chunkAmount: number,
-  sceneGraph: SceneGraph.SceneGraphNode
-): Chunks {
-  const chunksSceneGraph = SceneGraph.addChild(
-    sceneGraph,
-    Position.init(),
-    null
-  );
+export function createChunks(chunkSize: number, chunkAmount: number): Chunks {
   const totalChunks = chunkAmount * chunkAmount * chunkAmount;
   const chunks = new Array(totalChunks);
   const chunksNdarray = ndarray<Chunk>(chunks, [
@@ -83,13 +74,25 @@ export function createChunks(
     }
   }
 
+  return chunksNdarray;
+}
+
+export function storeVoxelModels(
+  chunks: Chunks,
+  sceneGraph: SceneGraph.SceneGraphNode
+): void {
   // TODO: These could be combined but I am planning on moving them to different places.
 
-  forEach3d(chunksNdarray, (chunk) =>
+  forEach3d(chunks, (chunk) =>
     ModelStore.storeModel(chunk.name, Voxels.voxelsToMesh(chunk.voxels))
   );
 
-  forEach3d(chunksNdarray, (chunk) =>
+  const chunksSceneGraph = SceneGraph.addChild(
+    sceneGraph,
+    Position.init(),
+    null
+  );
+  forEach3d(chunks, (chunk) =>
     SceneGraph.addChild(
       chunksSceneGraph,
       Position.create(
@@ -98,6 +101,4 @@ export function createChunks(
       chunk.name
     )
   );
-
-  return chunksNdarray;
 }
