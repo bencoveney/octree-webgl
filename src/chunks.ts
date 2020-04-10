@@ -5,6 +5,7 @@ import * as ModelStore from "./render/modelStore";
 import * as SceneGraph from "./sceneGraph";
 import * as Position from "./position";
 import { vec3 } from "gl-matrix";
+import { forEach3d } from "./utils";
 
 export type Chunks = ndarray<Chunk>;
 export type Chunk = {
@@ -13,6 +14,8 @@ export type Chunk = {
   originX: number;
   originY: number;
   originZ: number;
+  // Unique identifier per chunk. Useful for looking up models.
+  name: string;
   // Size (voxels.shape[0]).
   size: number;
 };
@@ -68,26 +71,33 @@ export function createChunks(
           typedArray
         );
 
-        const faces = Voxels.voxelsToMesh(voxels);
-
-        const modelName = `chunk_${x}_${y}_${z}`;
-        ModelStore.storeModel(modelName, faces);
-        SceneGraph.addChild(
-          chunksSceneGraph,
-          Position.create(vec3.fromValues(originX, originY, originZ)),
-          modelName
-        );
-
         chunksNdarray.set(x, y, z, ({
           voxels,
           originX,
           originY,
           originZ,
           size: chunkSize,
+          name: `chunk_${x}_${y}_${z}`,
         } as Chunk) as any);
       }
     }
   }
+
+  // TODO: These could be combined but I am planning on moving them to different places.
+
+  forEach3d(chunksNdarray, (chunk) =>
+    ModelStore.storeModel(chunk.name, Voxels.voxelsToMesh(chunk.voxels))
+  );
+
+  forEach3d(chunksNdarray, (chunk) =>
+    SceneGraph.addChild(
+      chunksSceneGraph,
+      Position.create(
+        vec3.fromValues(chunk.originX, chunk.originY, chunk.originZ)
+      ),
+      chunk.name
+    )
+  );
 
   return chunksNdarray;
 }
