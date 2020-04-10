@@ -6,6 +6,7 @@ import * as SceneGraph from "./sceneGraph";
 import * as Position from "./position";
 import { vec3 } from "gl-matrix";
 import { forEach3d } from "./utils";
+import { Voxel } from "./voxel";
 
 export type Chunks = ndarray<Chunk>;
 export type Chunk = {
@@ -20,33 +21,29 @@ export type Chunk = {
   size: number;
 };
 
-export function createChunks(chunkSize: number, chunkAmount: number): Chunks {
-  const totalChunks = chunkAmount * chunkAmount * chunkAmount;
-  const chunks = new Array(totalChunks);
-  const chunksNdarray = ndarray<Chunk>(chunks, [
-    chunkAmount,
-    chunkAmount,
-    chunkAmount,
-  ]);
-
-  const totalVoxelsPerChunk = chunkSize * chunkSize * chunkSize;
-
+// Fill the buffer with chunk data
+export function createChunkVoxels(
+  resolution: number,
+  size: number
+): ArrayBuffer {
+  const totalChunks = size * size * size;
+  const totalVoxelsPerChunk = resolution * resolution * resolution;
   const voxelBuffer = new ArrayBuffer(totalChunks * totalVoxelsPerChunk);
   const bytesPerVoxel = 1;
 
-  const lowerBound = 0 - (chunkAmount * chunkSize) / 2;
+  const lowerBound = 0 - (size * resolution) / 2;
 
-  for (let x = 0; x < chunkAmount; x++) {
-    for (let y = 0; y < chunkAmount; y++) {
-      for (let z = 0; z < chunkAmount; z++) {
-        const originX = lowerBound + chunkSize * x;
-        const originY = lowerBound + chunkSize * y;
-        const originZ = lowerBound + chunkSize * z;
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      for (let z = 0; z < size; z++) {
+        const originX = lowerBound + resolution * x;
+        const originY = lowerBound + resolution * y;
+        const originZ = lowerBound + resolution * z;
 
         const offset =
           totalVoxelsPerChunk * x +
-          totalVoxelsPerChunk * chunkAmount * y +
-          totalVoxelsPerChunk * chunkAmount * chunkAmount * z;
+          totalVoxelsPerChunk * size * y +
+          totalVoxelsPerChunk * size * size * z;
 
         const bufferOffset = offset * bytesPerVoxel;
         const bufferLength = totalVoxelsPerChunk * bytesPerVoxel;
@@ -56,18 +53,64 @@ export function createChunks(chunkSize: number, chunkAmount: number): Chunks {
           bufferLength
         );
 
-        const voxels = Voxels.create(
-          chunkSize,
+        Voxels.create(
+          resolution,
           VoxelFactories.positionedTerrain(originX, originY, originZ),
           typedArray
         );
+      }
+    }
+  }
+
+  return voxelBuffer;
+}
+
+export function createChunks(
+  resolution: number,
+  size: number,
+  voxelBuffer: ArrayBuffer
+): Chunks {
+  const totalChunks = size * size * size;
+  const chunks = new Array(totalChunks);
+  const chunksNdarray = ndarray<Chunk>(chunks, [size, size, size]);
+
+  const totalVoxelsPerChunk = resolution * resolution * resolution;
+
+  const bytesPerVoxel = 1;
+
+  const lowerBound = 0 - (size * resolution) / 2;
+
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      for (let z = 0; z < size; z++) {
+        const originX = lowerBound + resolution * x;
+        const originY = lowerBound + resolution * y;
+        const originZ = lowerBound + resolution * z;
+
+        const offset =
+          totalVoxelsPerChunk * x +
+          totalVoxelsPerChunk * size * y +
+          totalVoxelsPerChunk * size * size * z;
+
+        const bufferOffset = offset * bytesPerVoxel;
+        const bufferLength = totalVoxelsPerChunk * bytesPerVoxel;
+        const typedArray = new Uint8Array(
+          voxelBuffer,
+          bufferOffset,
+          bufferLength
+        );
+        const voxels = ndarray<Voxel>(typedArray, [
+          resolution,
+          resolution,
+          resolution,
+        ]);
 
         chunksNdarray.set(x, y, z, ({
           voxels,
           originX,
           originY,
           originZ,
-          size: chunkSize,
+          size: resolution,
           name: `chunk_${x}_${y}_${z}`,
         } as Chunk) as any);
       }

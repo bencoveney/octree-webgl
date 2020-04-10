@@ -1,11 +1,29 @@
 import Worker from "worker-loader!./worker";
 import { WorldGenMessage, CreateWorld } from "./message";
 import { ModelData } from "../render/modelStore";
+import * as Chunks from "../chunks";
 
-export function createWorld(
+export function createVoxels(
   // How many voxels along each axis of the chunk.
   resolution: number,
   // The number of chunks along each axis. Total resulting chunks will be size ^3.
+  size: number
+): Promise<Chunks.Chunks> {
+  return new Promise((resolve) => {
+    createWorld(
+      resolution,
+      size,
+      (message) => console.log("Got message: " + message),
+      (name) => console.log("Got model: " + name),
+      (voxels) => {
+        resolve(Chunks.createChunks(resolution, size, voxels));
+      }
+    );
+  });
+}
+
+function createWorld(
+  resolution: number,
   size: number,
   onStatus: (message: string) => void,
   onModelCreated: (name: string, model: ModelData) => void,
@@ -21,6 +39,7 @@ export function createWorld(
         break;
       case "worldCreated":
         onWorldCreated(message.voxels);
+        worker.terminate();
         break;
       case "modelCreated":
         onModelCreated(message.name, message.model);

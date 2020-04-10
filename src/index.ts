@@ -20,20 +20,20 @@ function main() {
 
   setUpMouseHandler(gl.canvas as HTMLCanvasElement);
 
-  const world = setUpWorld();
+  setUpWorld().then((world) => {
+    gameLoop((deltaTimeMs, totalTimeMs) => {
+      const deltaTimeS = deltaTimeMs / 1000;
+      resizeViewport(gl);
 
-  gameLoop((deltaTimeMs, totalTimeMs) => {
-    const deltaTimeS = deltaTimeMs / 1000;
-    resizeViewport(gl);
+      update(world, deltaTimeMs, totalTimeMs);
 
-    update(world, deltaTimeMs, totalTimeMs);
+      render(gl, shaders, world);
 
-    render(gl, shaders, world);
-
-    setDevToolsText(`FPS: ${Math.round(1 / deltaTimeS)}
-Debug: ${DEBUG_KEY.toUpperCase()}
-Move: W,A,S,D
-Jump: Space`);
+      setDevToolsText(`FPS: ${Math.round(1 / deltaTimeS)}
+  Debug: ${DEBUG_KEY.toUpperCase()}
+  Move: W,A,S,D
+  Jump: Space`);
+    });
   });
 }
 

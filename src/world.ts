@@ -48,29 +48,22 @@ export function create(
   };
 }
 
-export function setUpWorld(): World {
-  const depth = 4;
-  const size = Math.pow(2, depth);
+export async function setUpWorld(): Promise<World> {
+  const resolution = 64;
+  const size = 2;
 
-  const entities = EntityFactories.center(size);
+  const entities = EntityFactories.center(resolution);
 
   const sceneGraph = SceneGraph.init();
 
-  WorldGen.createWorld(
-    size,
-    5,
-    (message) => console.log("Got message: " + message),
-    (name) => console.log("Got model: " + name),
-    () => console.log("Done")
-  );
+  const chunks = await WorldGen.createVoxels(resolution, size);
 
-  const chunks = Chunks.createChunks(size, 5);
   Chunks.storeVoxelModels(chunks, sceneGraph);
 
   const world = create(
     sceneGraph,
     // TODO: Camera position should be a child of the entity.
-    Position.create([0, 0, size + depth * 8]),
+    Position.create([0, 0, resolution * size]),
     [0.3, 0.3, 0.3],
     [1, 1, 1],
     [0.85, 0.8, 0.75],

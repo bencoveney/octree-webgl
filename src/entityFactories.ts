@@ -2,6 +2,7 @@ import { Entity } from "./entity";
 import * as Position from "./position";
 import { vec3 } from "gl-matrix";
 
+// Janky size name.
 export function corners(size: number): Entity[] {
   const entityOffset = size / 2 - 1;
   return [
@@ -24,10 +25,10 @@ export function corners(size: number): Entity[] {
   }));
 }
 
-export function center(size: number): Entity[] {
+export function center(height: number): Entity[] {
   return [
     {
-      position: Position.create([0, size, 0], [1, 2, 1]),
+      position: Position.create([0, height, 0], [1, 2, 1]),
       speed: vec3.create(),
       width: 1,
       height: 2,
