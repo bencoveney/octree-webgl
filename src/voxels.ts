@@ -40,11 +40,11 @@ export function create(
 }
 
 export function voxelsToMesh(voxels: Voxels): ModelData {
-  const result: ModelData = {
-    position: [],
-    color: [],
-    index: [],
-    normal: [],
+  const result = {
+    position: [] as number[],
+    color: [] as number[],
+    index: [] as number[],
+    normal: [] as number[],
   };
   // Assumes all dimensions are the same size.
   const size = voxels.shape[0];
@@ -358,5 +358,10 @@ export function voxelsToMesh(voxels: Voxels): ModelData {
   runDimension([1, 2, 0]);
   runDimension([2, 0, 1]);
 
-  return result;
+  return {
+    position: Float32Array.from(result.position),
+    color: Float32Array.from(result.color),
+    index: Uint16Array.from(result.index),
+    normal: Float32Array.from(result.normal),
+  };
 }

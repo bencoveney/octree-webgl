@@ -1,26 +1,26 @@
 export type ModelKind = "tri" | "line";
 
-type LineModel<T> = {
+type LineModel<T, U> = {
   position: T;
   color: T;
-  index: T;
+  index: U;
 };
 
-export type LineModelData = LineModel<number[]>;
-export type LineModelBuffers = LineModel<WebGLBuffer> & {
+export type LineModelData = LineModel<Float32Array, Uint16Array>;
+export type LineModelBuffers = LineModel<WebGLBuffer, WebGLBuffer> & {
   kind: "line";
   count: number;
 };
 
-type Model<T> = {
+type Model<T, U> = {
   position: T;
   color: T;
-  index: T;
+  index: U;
   normal: T;
 };
 
-export type ModelData = Model<number[]>;
-export type ModelBuffers = Model<WebGLBuffer> & {
+export type ModelData = Model<Float32Array, Uint16Array>;
+export type ModelBuffers = Model<WebGLBuffer, WebGLBuffer> & {
   kind: "tri";
   count: number;
 };
@@ -89,20 +89,12 @@ function createModelBuffers(
   { position, color, index, normal }: ModelData
 ): ModelBuffers {
   return {
-    position: createArrayBuffer(
-      gl,
-      gl.ARRAY_BUFFER,
-      new Float32Array(position)
-    ),
-    color: createArrayBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(color)),
-    index: createArrayBuffer(
-      gl,
-      gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(index)
-    ),
-    normal: createArrayBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(normal)),
+    position: createArrayBuffer(gl, gl.ARRAY_BUFFER, position),
+    color: createArrayBuffer(gl, gl.ARRAY_BUFFER, color),
+    index: createArrayBuffer(gl, gl.ELEMENT_ARRAY_BUFFER, index),
+    normal: createArrayBuffer(gl, gl.ARRAY_BUFFER, normal),
     kind: "tri",
-    count: index.length
+    count: index.length,
   };
 }
 
@@ -111,19 +103,11 @@ function createLineModelBuffers(
   { position, color, index }: LineModelData
 ): LineModelBuffers {
   return {
-    position: createArrayBuffer(
-      gl,
-      gl.ARRAY_BUFFER,
-      new Float32Array(position)
-    ),
-    color: createArrayBuffer(gl, gl.ARRAY_BUFFER, new Float32Array(color)),
-    index: createArrayBuffer(
-      gl,
-      gl.ELEMENT_ARRAY_BUFFER,
-      new Uint16Array(index)
-    ),
+    position: createArrayBuffer(gl, gl.ARRAY_BUFFER, position),
+    color: createArrayBuffer(gl, gl.ARRAY_BUFFER, color),
+    index: createArrayBuffer(gl, gl.ELEMENT_ARRAY_BUFFER, index),
     kind: "line",
-    count: index.length
+    count: index.length,
   };
 }
 
@@ -146,7 +130,7 @@ function createArrayBuffer(
 function convertToLineModel({
   position,
   color,
-  index
+  index,
 }: ModelData): LineModelData {
   const newIndex = [];
   for (let triplet = 0; triplet < index.length; triplet += 3) {
@@ -162,6 +146,6 @@ function convertToLineModel({
   return {
     position,
     color,
-    index: newIndex
+    index: Uint16Array.from(newIndex),
   };
 }

@@ -83,7 +83,7 @@ const position = [
   1.0,
   -1.0,
   1.0,
-  -1.0
+  -1.0,
 ];
 
 const faceColors = [
@@ -92,7 +92,7 @@ const faceColors = [
   [0.0, 1.0, 0.0, 1.0], // Top face: green
   [0.0, 0.0, 1.0, 1.0], // Bottom face: blue
   [1.0, 1.0, 0.0, 1.0], // Right face: yellow
-  [1.0, 0.0, 1.0, 1.0] // Left face: purple
+  [1.0, 0.0, 1.0, 1.0], // Left face: purple
 ];
 
 let color: number[] = [];
@@ -145,7 +145,7 @@ const index = [
   22,
   20,
   22,
-  23
+  23,
 ];
 
 const normal = [
@@ -231,12 +231,12 @@ const normal = [
   0.0,
   -1.0,
   0.0,
-  0.0
+  0.0,
 ];
 
 export const model: ModelData = {
-  position,
-  color,
-  index,
-  normal
+  position: Float32Array.from(position),
+  color: Float32Array.from(color),
+  index: Uint16Array.from(index),
+  normal: Float32Array.from(normal),
 };

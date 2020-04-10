@@ -23,13 +23,13 @@ const position = [
   0,
   0,
   0,
-  1
+  1,
 ];
 
 const faceColors = [
   [1.0, 0.0, 0.0, 1.0], // x: red
   [0.0, 1.0, 0.0, 1.0], // y: green
-  [0.0, 0.0, 1.0, 1.0] // z: blue
+  [0.0, 0.0, 1.0, 1.0], // z: blue
 ];
 
 let color: number[] = [];
@@ -43,7 +43,7 @@ for (let j = 0; j < faceColors.length; ++j) {
 const index = [0, 1, 2, 3, 4, 5];
 
 export const model: LineModelData = {
-  position,
-  color,
-  index
+  position: Float32Array.from(position),
+  color: Float32Array.from(color),
+  index: Uint16Array.from(index),
 };
