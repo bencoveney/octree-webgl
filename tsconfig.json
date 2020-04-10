@@ -11,5 +11,5 @@
     "noUnusedLocals": true,
     "noUnusedParameters": true
   },
-  "include": ["src/**/*.ts", "src/glsl.d.ts"]
+  "include": ["src/**/*.ts"]
 }

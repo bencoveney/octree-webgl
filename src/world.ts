@@ -48,7 +48,7 @@ export function create(
 }
 
 export function setUpWorld(): World {
-  const depth = 6;
+  const depth = 4;
   const size = Math.pow(2, depth);
 
   const entities = EntityFactories.center(size);
@@ -63,7 +63,7 @@ export function setUpWorld(): World {
     [1, 1, 1],
     [0.85, 0.8, 0.75],
     entities,
-    Chunks.createChunks(size, 2, sceneGraph)
+    Chunks.createChunks(size, 5, sceneGraph)
   );
 
   SceneGraph.addChild(world.sceneGraph, Position.init(), "axis");
