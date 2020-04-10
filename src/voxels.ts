@@ -19,12 +19,12 @@ export type VoxelFactory = (
   halfSize: number
 ) => Voxel;
 
-export function create(size: number, factory: VoxelFactory): Voxels {
-  const result = ndarray<Voxel>(new Uint8Array(size * size * size), [
-    size,
-    size,
-    size,
-  ]);
+export function create(
+  size: number,
+  factory: VoxelFactory,
+  buffer: Uint8Array
+): Voxels {
+  const result = ndarray<Voxel>(buffer, [size, size, size]);
 
   const halfSize = size / 2;
 

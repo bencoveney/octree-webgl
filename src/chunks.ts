@@ -27,12 +27,18 @@ export function createChunks(
     Position.init(),
     null
   );
-  const chunks = new Array(chunkAmount * chunkAmount * chunkAmount);
+  const totalChunks = chunkAmount * chunkAmount * chunkAmount;
+  const chunks = new Array(totalChunks);
   const chunksNdarray = ndarray<Chunk>(chunks, [
     chunkAmount,
     chunkAmount,
     chunkAmount,
   ]);
+
+  const totalVoxelsPerChunk = chunkSize * chunkSize * chunkSize;
+
+  const voxelBuffer = new ArrayBuffer(totalChunks * totalVoxelsPerChunk);
+  const bytesPerVoxel = 1;
 
   const lowerBound = 0 - (chunkAmount * chunkSize) / 2;
 
@@ -43,9 +49,23 @@ export function createChunks(
         const originY = lowerBound + chunkSize * y;
         const originZ = lowerBound + chunkSize * z;
 
+        const offset =
+          totalVoxelsPerChunk * x +
+          totalVoxelsPerChunk * chunkAmount * y +
+          totalVoxelsPerChunk * chunkAmount * chunkAmount * z;
+
+        const bufferOffset = offset * bytesPerVoxel;
+        const bufferLength = totalVoxelsPerChunk * bytesPerVoxel;
+        const typedArray = new Uint8Array(
+          voxelBuffer,
+          bufferOffset,
+          bufferLength
+        );
+
         const voxels = Voxels.create(
           chunkSize,
-          VoxelFactories.positionedTerrain(originX, originY, originZ)
+          VoxelFactories.positionedTerrain(originX, originY, originZ),
+          typedArray
         );
 
         const faces = Voxels.voxelsToMesh(voxels);
