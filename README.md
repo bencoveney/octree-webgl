@@ -5,6 +5,7 @@
 - [Emscripten: Optimizing WebGL](https://emscripten.org/docs/optimizing/Optimizing-WebGL.html)
 - [WebGL Fundamentals: Instanced Drawing](https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html)
 - [Color Palette](https://lospec.com/palette-list/zughy-32)
+- [Ray tracing](http://www.cse.yorku.ca/~amana/research/grid.pdf)
 
 # Things to try
 

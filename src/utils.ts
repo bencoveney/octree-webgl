@@ -16,3 +16,14 @@ export function forEach3d<T>(
     }
   }
 }
+
+export function forEach2d<T>(
+  array2d: ndarray<T>,
+  callback: (t: T, x: number, y: number) => void
+): void {
+  for (let x = 0; x < array2d.shape[0]; x++) {
+    for (let y = 0; y < array2d.shape[1]; y++) {
+      callback(array2d.get(x, y), x, y);
+    }
+  }
+}
