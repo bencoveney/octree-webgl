@@ -1,7 +1,6 @@
 import ndarray from "ndarray";
 import * as Voxels from "./voxels";
 import * as VoxelFactories from "./voxelFactories";
-import * as ModelStore from "./render/modelStore";
 import * as SceneGraph from "./sceneGraph";
 import * as Position from "./position";
 import { vec3 } from "gl-matrix";
@@ -21,10 +20,10 @@ export type Chunk = {
   size: number;
 };
 
-// Fill the buffer with chunk data
 export function createChunkVoxels(
   resolution: number,
-  size: number
+  size: number,
+  createMesh: (voxels: Voxels.Voxels, chunkName: string) => void
 ): ArrayBuffer {
   const totalChunks = size * size * size;
   const totalVoxelsPerChunk = resolution * resolution * resolution;
@@ -53,16 +52,22 @@ export function createChunkVoxels(
           bufferLength
         );
 
-        Voxels.create(
+        const voxels = Voxels.create(
           resolution,
           VoxelFactories.positionedTerrain(originX, originY, originZ),
           typedArray
         );
+
+        createMesh(voxels, chunkName(x, y, z));
       }
     }
   }
 
   return voxelBuffer;
+}
+
+function chunkName(x: number, y: number, z: number): string {
+  return `chunk_${x}_${y}_${z}`;
 }
 
 export function createChunks(
@@ -120,16 +125,10 @@ export function createChunks(
   return chunksNdarray;
 }
 
-export function storeVoxelModels(
+export function addToWorld(
   chunks: Chunks,
   sceneGraph: SceneGraph.SceneGraphNode
 ): void {
-  // TODO: These could be combined but I am planning on moving them to different places.
-
-  forEach3d(chunks, (chunk) =>
-    ModelStore.storeModel(chunk.name, Voxels.voxelsToMesh(chunk.voxels))
-  );
-
   const chunksSceneGraph = SceneGraph.addChild(
     sceneGraph,
     Position.init(),

@@ -54,11 +54,10 @@ export async function setUpWorld(): Promise<World> {
 
   const entities = EntityFactories.center(resolution);
 
-  const sceneGraph = SceneGraph.init();
-
   const chunks = await WorldGen.createVoxels(resolution, size);
 
-  Chunks.storeVoxelModels(chunks, sceneGraph);
+  const sceneGraph = SceneGraph.init();
+  Chunks.addToWorld(chunks, sceneGraph);
 
   const world = create(
     sceneGraph,

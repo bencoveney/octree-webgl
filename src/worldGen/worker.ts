@@ -1,5 +1,6 @@
 import { WorldGenMessage, CreateWorld } from "./message";
 import * as Chunks from "../chunks";
+import * as Voxels from "../voxels";
 
 const context: Worker = self as any;
 
@@ -20,6 +21,14 @@ function send(message: WorldGenMessage): void {
     case "worldCreated":
       context.postMessage(message, [message.voxels]);
       break;
+    case "modelCreated":
+      context.postMessage(message, [
+        message.model.color.buffer,
+        message.model.index.buffer,
+        message.model.normal.buffer,
+        message.model.position.buffer,
+      ]);
+      break;
     default:
       context.postMessage(message);
       break;
@@ -28,6 +37,11 @@ function send(message: WorldGenMessage): void {
 
 function createWorld(message: CreateWorld) {
   send({ kind: "status", message: "Generating chunks" });
-  const chunks = Chunks.createChunkVoxels(message.resolution, message.size);
+  const chunks = Chunks.createChunkVoxels(
+    message.resolution,
+    message.size,
+    (voxels, name) =>
+      send({ kind: "modelCreated", name, model: Voxels.voxelsToMesh(voxels) })
+  );
   send({ kind: "worldCreated", voxels: chunks });
 }

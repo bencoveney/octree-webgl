@@ -2,6 +2,7 @@ import Worker from "worker-loader!./worker";
 import { WorldGenMessage, CreateWorld } from "./message";
 import { ModelData } from "../render/modelStore";
 import * as Chunks from "../chunks";
+import * as ModelStore from "../render/modelStore";
 
 export function createVoxels(
   // How many voxels along each axis of the chunk.
@@ -14,7 +15,7 @@ export function createVoxels(
       resolution,
       size,
       (message) => console.log("Got message: " + message),
-      (name) => console.log("Got model: " + name),
+      (name, model) => ModelStore.storeModel(name, model),
       (voxels) => {
         resolve(Chunks.createChunks(resolution, size, voxels));
       }
