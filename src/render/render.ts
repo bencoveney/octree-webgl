@@ -7,6 +7,9 @@ import * as SceneGraph from "../sceneGraph";
 import * as ModelStore from "./modelStore";
 import { getDebugMode } from "../debug/debugMode";
 
+// "skyblue"
+const clearColor = [135, 206, 235, 255].map((value) => value / 255);
+
 export function render(
   gl: WebGLRenderingContext,
   shaders: Shaders,
@@ -16,7 +19,7 @@ export function render(
   gl.enable(gl.DEPTH_TEST);
   gl.depthFunc(gl.LEQUAL);
 
-  gl.clearColor(0.0, 0.0, 0.0, 1.0);
+  gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -147,7 +150,7 @@ function drawTriModels(
       3
     );
 
-    modelViews.forEach(modelViewMatrix => {
+    modelViews.forEach((modelViewMatrix) => {
       bindUniformMatrix(
         gl,
         programInfo.uniformLocations.modelViewMatrix,
@@ -196,7 +199,7 @@ function drawLineModels(
       programInfo.attributeLocations.vertexColor,
       4
     );
-    modelViews.forEach(modelViewMatrix => {
+    modelViews.forEach((modelViewMatrix) => {
       bindUniformMatrix(
         gl,
         programInfo.uniformLocations.modelViewMatrix,
@@ -233,7 +236,7 @@ type Renderables = {
 function getRenderables(gl: WebGLRenderingContext, world: World): Renderables {
   const result: Renderables = {
     tri: {},
-    line: {}
+    line: {},
   };
 
   const preferredModelKind: ModelStore.ModelKind = getDebugMode()
@@ -246,7 +249,7 @@ function getRenderables(gl: WebGLRenderingContext, world: World): Renderables {
       if (!result.line[model]) {
         result.line[model] = {
           buffers: buffers,
-          modelViews: []
+          modelViews: [],
         };
       }
       result.line[model].modelViews.push(modelView);
@@ -254,7 +257,7 @@ function getRenderables(gl: WebGLRenderingContext, world: World): Renderables {
       if (!result.tri[model]) {
         result.tri[model] = {
           buffers: buffers,
-          modelViews: []
+          modelViews: [],
         };
       }
       result.tri[model].modelViews.push(modelView);
@@ -284,7 +287,9 @@ function walkSceneGraph(
         childNodeMatrix
       );
     }
-    childNode.children.forEach(grandchild => walk(childNodeMatrix, grandchild));
+    childNode.children.forEach((grandchild) =>
+      walk(childNodeMatrix, grandchild)
+    );
   }
 
   const cameraMatrix = createCameraMatrix(world.camera.position);

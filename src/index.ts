@@ -1,5 +1,5 @@
 import "./index.scss";
-import { initialiseShaders } from "./render/shaders";
+import { initialiseShaders, Shaders } from "./render/shaders";
 import { initDevTools, setDevToolsText } from "./debug/devTools";
 import { createViewport, resizeViewport } from "./render/canvas";
 import { model as cubeModel } from "./render/models/cubeModel";
@@ -7,10 +7,25 @@ import { model as axisModel } from "./render/models/axisModel";
 import { render } from "./render/render";
 import * as ModelStore from "./render/modelStore";
 import { DEBUG_KEY } from "./debug/debugMode";
-import { setUpWorld, update } from "./world";
+import { setUpWorld, update, World } from "./world";
 import { setUpMouseHandler } from "./mouseHandler";
+import * as LoadingScreen from "./loading/loadingScreen";
 
 function main() {
+  loadGame().then(runGame)
+}
+
+type Game = {
+  gl: WebGLRenderingContext,
+  shaders: Shaders,
+  world: World
+}
+
+async function loadGame(): Promise<Game> {
+  LoadingScreen.createLoadingScreen();
+
+  const world = await setUpWorld();
+
   const gl = createViewport();
   initDevTools();
   const shaders = initialiseShaders(gl);
@@ -20,20 +35,24 @@ function main() {
 
   setUpMouseHandler(gl.canvas as HTMLCanvasElement);
 
-  setUpWorld().then((world) => {
-    gameLoop((deltaTimeMs, totalTimeMs) => {
-      const deltaTimeS = deltaTimeMs / 1000;
-      resizeViewport(gl);
+  LoadingScreen.destroyLoadingScreen();
 
-      update(world, deltaTimeMs, totalTimeMs);
+  return {world, gl, shaders};
+}
 
-      render(gl, shaders, world);
+function runGame({world, gl, shaders}: Game) {
+  gameLoop((deltaTimeMs, totalTimeMs) => {
+    const deltaTimeS = deltaTimeMs / 1000;
+    resizeViewport(gl);
 
-      setDevToolsText(`FPS: ${Math.round(1 / deltaTimeS)}
-  Debug: ${DEBUG_KEY.toUpperCase()}
-  Move: W,A,S,D
-  Jump: Space`);
-    });
+    update(world, deltaTimeMs, totalTimeMs);
+
+    render(gl, shaders, world);
+
+    setDevToolsText(`FPS: ${Math.round(1 / deltaTimeS)}
+Debug: ${DEBUG_KEY.toUpperCase()}
+Move: W,A,S,D
+Jump: Space`);
   });
 }
 
