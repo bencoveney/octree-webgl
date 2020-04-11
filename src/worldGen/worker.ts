@@ -1,6 +1,6 @@
 import { WorldGenMessage, CreateWorld } from "./message";
-import * as Chunks from "../chunks";
 import * as Voxels from "../voxels";
+import { buildWorldChunks } from "./buildWorldChunks";
 
 const context: Worker = self as any;
 
@@ -37,7 +37,7 @@ function send(message: WorldGenMessage): void {
 
 function createWorld(message: CreateWorld) {
   send({ kind: "status", message: "Generating chunks" });
-  const chunks = Chunks.createChunkVoxels(
+  const chunks = buildWorldChunks(
     message.resolution,
     message.size,
     (voxels, name) =>

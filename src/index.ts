@@ -12,14 +12,14 @@ import { setUpMouseHandler } from "./mouseHandler";
 import * as LoadingScreen from "./loading/loadingScreen";
 
 function main() {
-  loadGame().then(runGame)
+  loadGame().then(runGame);
 }
 
 type Game = {
-  gl: WebGLRenderingContext,
-  shaders: Shaders,
-  world: World
-}
+  gl: WebGLRenderingContext;
+  shaders: Shaders;
+  world: World;
+};
 
 async function loadGame(): Promise<Game> {
   LoadingScreen.createLoadingScreen();
@@ -37,10 +37,10 @@ async function loadGame(): Promise<Game> {
 
   LoadingScreen.destroyLoadingScreen();
 
-  return {world, gl, shaders};
+  return { world, gl, shaders };
 }
 
-function runGame({world, gl, shaders}: Game) {
+function runGame({ world, gl, shaders }: Game) {
   gameLoop((deltaTimeMs, totalTimeMs) => {
     const deltaTimeS = deltaTimeMs / 1000;
     resizeViewport(gl);

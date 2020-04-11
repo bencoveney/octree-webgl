@@ -14,3 +14,4 @@
 
 - Memory usage improvement
 - Send color palette to shader
+- Lazyload scripts during loading screen

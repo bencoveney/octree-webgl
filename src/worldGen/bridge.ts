@@ -4,27 +4,28 @@ import { ModelData } from "../render/modelStore";
 import * as Chunks from "../chunks";
 import * as ModelStore from "../render/modelStore";
 import { setLoadingScreenText } from "../loading/loadingScreen";
+import { reconstructWorld } from "./reconstructWorld";
 
-export function createVoxels(
+export function createWorld(
   // How many voxels along each axis of the chunk.
   resolution: number,
   // The number of chunks along each axis. Total resulting chunks will be size ^3.
   size: number
 ): Promise<Chunks.Chunks> {
   return new Promise((resolve) => {
-    createWorld(
+    dispatchToWorker(
       resolution,
       size,
       (message) => setLoadingScreenText("Loading: " + message),
       (name, model) => ModelStore.storeModel(name, model),
       (voxels) => {
-        resolve(Chunks.createChunks(resolution, size, voxels));
+        resolve(reconstructWorld(resolution, size, voxels));
       }
     );
   });
 }
 
-function createWorld(
+function dispatchToWorker(
   resolution: number,
   size: number,
   onStatus: (message: string) => void,
