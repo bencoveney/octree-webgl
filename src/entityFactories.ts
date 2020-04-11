@@ -25,13 +25,19 @@ export function corners(size: number): Entity[] {
   }));
 }
 
+const entityHeight = 4;
+const entityWidth = 2;
+
 export function center(height: number): Entity[] {
   return [
     {
-      position: Position.create([0, height + 2, 0], [1, 2, 1]),
+      position: Position.create(
+        [0, height + 2, 0],
+        [entityWidth, entityHeight, entityWidth]
+      ),
       speed: vec3.create(),
-      width: 1,
-      height: 2,
+      width: entityWidth,
+      height: entityHeight,
       model: "cube",
       isGrounded: false,
     },

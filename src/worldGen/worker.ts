@@ -44,10 +44,11 @@ function createWorld({ size, resolution }: CreateWorld) {
   const axisTotalSize = size * resolution;
   const heightmap = createHeightmap(axisTotalSize);
   populateHeightmap(heightmap, 50, [
-    { step: 32, amplitude: 0.4 },
-    { step: 64, amplitude: 0.6 },
-    { step: 128, amplitude: 0.8 },
-    { step: 256, amplitude: 1 },
+    { step: 32, amplitude: 0.2 },
+    { step: 64, amplitude: 0.4 },
+    { step: 128, amplitude: 0.6 },
+    { step: 256, amplitude: 0.8 },
+    { step: 512, amplitude: 1 },
   ]);
 
   send({ kind: "status", message: "Generating voxels" });

@@ -50,7 +50,7 @@ export function create(
 
 export async function setUpWorld(): Promise<World> {
   const resolution = 64;
-  const size = 4;
+  const size = 6;
 
   const entities = EntityFactories.center(resolution * (size / 2));
 
