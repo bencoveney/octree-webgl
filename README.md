@@ -12,6 +12,10 @@
 - Terrain
 - Lighting
 
+# Optimisations
+
 - Memory usage improvement
 - Send color palette to shader
 - Lazyload scripts during loading screen
+- More typed array usage (specifically ints)
+- TODOs

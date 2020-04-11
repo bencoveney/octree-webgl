@@ -34,19 +34,13 @@ export const positionedTerrain: (
   offsetX: number,
   offsetY: number,
   offsetZ: number
-) => VoxelFactory = (offsetX, offsetY, offsetZ) => (
-  x,
-  y,
-  z,
-  _size,
-  halfSize
-) => {
+) => VoxelFactory = (offsetX, offsetY, offsetZ) => (x, y, z, size) => {
   const actualX = offsetX + x;
   const actualY = offsetY + y;
   const actualZ = offsetZ + z;
   const density = Noise.perlin3(actualX / 100, actualY / 100, actualZ / 100);
-  const height = actualY - halfSize;
-  const adjustedDensity = density - height / halfSize;
+  const height = actualY - size;
+  const adjustedDensity = density - height / size;
   const material =
     adjustedDensity >= 0 ? Voxel.Material.MATERIAL_1 : Voxel.Material.AIR;
   return Voxel.create(material, heightColor(actualX, actualY, actualZ));

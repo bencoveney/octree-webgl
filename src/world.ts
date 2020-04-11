@@ -52,7 +52,7 @@ export async function setUpWorld(): Promise<World> {
   const resolution = 64;
   const size = 4;
 
-  const entities = EntityFactories.center(resolution);
+  const entities = EntityFactories.center(resolution * (size / 2));
 
   const chunks = await WorldGen.createWorld(resolution, size);
 
