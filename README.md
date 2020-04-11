@@ -9,10 +9,8 @@
 # Things to try
 
 - Raycasting
-- Chunks
 - Terrain
 - Lighting
 
 - Memory usage improvement
-- Use typed arrays for more things
 - Send color palette to shader
