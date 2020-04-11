@@ -1,8 +1,8 @@
 import { WorldGenMessage, CreateWorld } from "./message";
-import * as Voxels from "../voxels";
 import { buildWorldChunks } from "./buildWorldChunks";
 import { forEach3d } from "../utils";
 import { chunkName } from "../chunks";
+import { constructVoxelMesh } from "./constructVoxelMesh";
 
 const context: Worker = self as any;
 
@@ -44,10 +44,10 @@ function createWorld({ size, resolution }: CreateWorld) {
 
   const voxelBuffer = new ArrayBuffer(totalChunks * totalVoxelsPerChunk);
   const chunkVoxels = buildWorldChunks(resolution, size, voxelBuffer);
-  forEach3d(chunkVoxels, (voxels, x, y, z) => {
+  forEach3d(chunkVoxels, (_, x, y, z) => {
     const name = chunkName(x, y, z);
-    send({ kind: "status", message: "Generating mesh " + name });
-    const mesh = Voxels.voxelsToMesh(voxels);
+    send({ kind: "status", message: "Generating mesh for " + name });
+    const mesh = constructVoxelMesh(chunkVoxels, x, y, z);
     send({ kind: "modelCreated", name, model: mesh });
   });
 
