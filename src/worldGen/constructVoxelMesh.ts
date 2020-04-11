@@ -20,15 +20,24 @@ export function constructVoxelMesh(
   // Assumes all dimensions are the same size.
   const size = voxels.shape[0];
 
-  function runDimension(transpose: [number, number, number]) {
-    let transposeVoxels = voxels;
-    if (
-      transpose
-        .map((lookupIndex, index) => lookupIndex === index)
-        .some((match) => !match)
-    ) {
-      transposeVoxels = transposeVoxels.transpose(...transpose);
-    }
+  function runDimension(transpose: Transpose) {
+    const transposeVoxels = getTranspose(voxels, transpose);
+    const positiveNeighbour = getTransposedChunk(
+      chunkVoxels,
+      chunkX,
+      chunkY,
+      chunkZ,
+      transpose,
+      +1
+    );
+    const negativeNeighbour = getTransposedChunk(
+      chunkVoxels,
+      chunkX,
+      chunkY,
+      chunkZ,
+      transpose,
+      -1
+    );
 
     // Iterate through layers in the main dimension.
     for (let layer = 0; layer < size; layer++) {
@@ -53,7 +62,19 @@ export function constructVoxelMesh(
             const color = getColor(transposeVoxels.get(layer, row, column));
             // Check if there is a voxel on one side of it.
             if (layer + 1 >= size) {
-              color1 = color;
+              if (positiveNeighbour) {
+                // The voxel is in a different chunk.
+                const neighbour1 = getMaterial(
+                  positiveNeighbour.get(0, row, column)
+                );
+                if (neighbour1 === Material.AIR) {
+                  // If there is no voxel on this side of it, then the face will be visible and
+                  // should be added to the color map for this side of the layer.
+                  color1 = color;
+                }
+              } else {
+                color1 = color;
+              }
             } else {
               const neighbour1 = getMaterial(
                 transposeVoxels.get(layer + 1, row, column)
@@ -66,7 +87,19 @@ export function constructVoxelMesh(
             }
             // Check if there is a voxel on the other side of it.
             if (layer - 1 < 0) {
-              color2 = color;
+              if (negativeNeighbour) {
+                // The voxel is in a different chunk.
+                const neighbour2 = getMaterial(
+                  negativeNeighbour.get(size - 1, row, column)
+                );
+                if (neighbour2 === Material.AIR) {
+                  // If there is no voxel on this side of it, then the face will be visible and
+                  // should be added to the color map for this side of the layer.
+                  color2 = color;
+                }
+              } else {
+                color2 = color;
+              }
             } else {
               const neighbour2 = getMaterial(
                 transposeVoxels.get(layer - 1, row, column)
@@ -225,7 +258,7 @@ export function constructVoxelMesh(
   }
 
   function addFaceToMesh(
-    transpose: [number, number, number],
+    transpose: Transpose,
     layer: number,
     row: number,
     column: number,
@@ -335,4 +368,45 @@ export function constructVoxelMesh(
     index: Uint16Array.from(result.index),
     normal: Float32Array.from(result.normal),
   };
+}
+
+function getTransposedChunk(
+  chunkVoxels: ndarray<Voxels>,
+  x: number,
+  y: number,
+  z: number,
+  transpose: Transpose,
+  offset: -1 | 1
+): Voxels | null {
+  const position = [x, y, z];
+  const transposedPosition = position.map((coord, index) =>
+    index === transpose[0] ? coord + offset : coord
+  );
+
+  if (
+    transposedPosition.some(
+      (coord) => coord < 0 || coord >= chunkVoxels.shape[0]
+    )
+  ) {
+    return null;
+  }
+
+  const voxels = chunkVoxels.get(...transposedPosition);
+  const transposed = getTranspose(voxels, transpose);
+  return transposed;
+}
+
+type Transpose = [number, number, number];
+function getTranspose(voxels: Voxels, transpose: Transpose): Voxels {
+  let transposeVoxels = voxels;
+
+  if (
+    transpose
+      .map((lookupIndex, index) => lookupIndex === index)
+      .some((match) => !match)
+  ) {
+    transposeVoxels = transposeVoxels.transpose(...transpose);
+  }
+
+  return transposeVoxels;
 }
