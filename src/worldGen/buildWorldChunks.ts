@@ -1,15 +1,18 @@
 import * as Voxels from "../voxels";
 import * as VoxelFactories from "../voxelFactories";
-import { chunkName } from "../chunks";
+import ndarray from "ndarray";
 
 export function buildWorldChunks(
   resolution: number,
   size: number,
-  createMesh: (voxels: Voxels.Voxels, chunkName: string) => void
-): ArrayBuffer {
-  const totalChunks = size * size * size;
+  voxelBuffer: ArrayBuffer
+): ndarray<Voxels.Voxels> {
+  const chunkVoxels: ndarray<Voxels.Voxels> = ndarray(
+    new Array(size * size * size),
+    [size, size, size]
+  );
+
   const totalVoxelsPerChunk = resolution * resolution * resolution;
-  const voxelBuffer = new ArrayBuffer(totalChunks * totalVoxelsPerChunk);
   const bytesPerVoxel = 1;
 
   const lowerBound = 0 - (size * resolution) / 2;
@@ -40,10 +43,10 @@ export function buildWorldChunks(
           typedArray
         );
 
-        createMesh(voxels, chunkName(x, y, z));
+        chunkVoxels.set(x, y, z, voxels as any);
       }
     }
   }
 
-  return voxelBuffer;
+  return chunkVoxels;
 }
