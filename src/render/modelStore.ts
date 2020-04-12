@@ -72,6 +72,10 @@ export function getBuffers(
   throw new Error(`Cannot find any model with name "${name}"`);
 }
 
+export function hasBuffers(name: string, preferred: ModelKind) {
+  return (preferred === "tri" && modelStore.has(name)) || lineStore.has(name);
+}
+
 function createTriVertexArray(
   gl: WebGL2RenderingContext,
   geometry: TriGeometry

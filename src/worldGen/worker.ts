@@ -67,7 +67,9 @@ function createWorld({ size, resolution }: CreateWorld) {
     const name = chunkName(x, y, z);
     send({ kind: "status", message: "Generating mesh for " + name });
     const mesh = constructVoxelMesh(chunkVoxels, x, y, z);
-    send({ kind: "modelCreated", name, model: mesh });
+    if (mesh.index.length > 0) {
+      send({ kind: "modelCreated", name, model: mesh });
+    }
   });
 
   send({ kind: "worldCreated", voxels: voxelBuffer });

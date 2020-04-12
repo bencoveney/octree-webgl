@@ -3,6 +3,10 @@ import ndarray from "ndarray";
 import { Material, Color, getRgba, getMaterial, getColor } from "../voxel";
 import { Voxels } from "../voxels";
 
+type UntypedTriGeometry = {
+  [key in keyof TriGeometry]: number[]
+}
+
 export function constructVoxelMesh(
   chunkVoxels: ndarray<Voxels>,
   chunkX: number,
@@ -11,12 +15,18 @@ export function constructVoxelMesh(
 ): TriGeometry {
   const voxels = chunkVoxels.get(chunkX, chunkY, chunkZ);
 
-  const result = {
-    position: [] as number[],
-    color: [] as number[],
-    index: [] as number[],
-    normal: [] as number[],
+  const result: UntypedTriGeometry = {
+    position: [],
+    color: [],
+    index: [],
+    normal: [],
   };
+
+  const isEmpty = !(voxels.data as Uint8Array).some(voxel => getMaterial(voxel) !== Material.AIR);
+  if (isEmpty) {
+    return buildTypedModel(result);
+  }
+
   // Assumes all dimensions are the same size.
   const size = voxels.shape[0];
 
@@ -362,11 +372,15 @@ export function constructVoxelMesh(
   runDimension([1, 2, 0]);
   runDimension([2, 0, 1]);
 
+  return buildTypedModel(result);
+}
+
+function buildTypedModel(untyped: UntypedTriGeometry): TriGeometry {
   return {
-    position: Float32Array.from(result.position),
-    color: Float32Array.from(result.color),
-    index: Uint16Array.from(result.index),
-    normal: Float32Array.from(result.normal),
+    position: Float32Array.from(untyped.position),
+    color: Float32Array.from(untyped.color),
+    index: Uint16Array.from(untyped.index),
+    normal: Float32Array.from(untyped.normal),
   };
 }
 

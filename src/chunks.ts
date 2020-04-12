@@ -4,6 +4,7 @@ import * as SceneGraph from "./sceneGraph";
 import * as Position from "./position";
 import { vec3 } from "gl-matrix";
 import { forEach3d } from "./utils";
+import { hasBuffers } from "./render/modelStore";
 
 export type Chunks = ndarray<Chunk>;
 export type Chunk = {
@@ -31,13 +32,15 @@ export function addToWorld(
     Position.init(),
     null
   );
-  forEach3d(chunks, (chunk) =>
-    SceneGraph.addChild(
-      chunksSceneGraph,
-      Position.create(
-        vec3.fromValues(chunk.originX, chunk.originY, chunk.originZ)
-      ),
-      chunk.name
-    )
-  );
+  forEach3d(chunks, (chunk) => {
+    if (hasBuffers(chunk.name, "tri")) {
+      SceneGraph.addChild(
+        chunksSceneGraph,
+        Position.create(
+          vec3.fromValues(chunk.originX, chunk.originY, chunk.originZ)
+        ),
+        chunk.name
+      );
+    }
+  });
 }
