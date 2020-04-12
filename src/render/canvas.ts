@@ -5,11 +5,13 @@ let canvas: HTMLCanvasElement;
 export function createViewport(): WebGL2RenderingContext {
   canvas = document.createElement("canvas");
   canvas.setAttribute("id", "canvas");
+  canvas.style.width = "100%";
+  canvas.style.height = "100%";
   document.body.appendChild(canvas);
 
   const webGlOptions: WebGLContextAttributes = {
     powerPreference: "high-performance",
-    antialias: true,
+    antialias: false, // slow on 4k :(
   };
 
   let gl = canvas.getContext("webgl2", webGlOptions);
