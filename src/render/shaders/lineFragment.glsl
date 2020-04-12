@@ -2,10 +2,10 @@
 
 precision lowp float;
 
-in vec4 vColor;
+in vec4 color;
 
 out vec4 outputColor;
 
 void main(void) {
-	outputColor = vColor;
+	outputColor = color;
 }

@@ -1,6 +1,11 @@
+export enum AttributeLocations {
+  vertexPosition = 0,
+  vertexNormal = 1,
+  vertexColor = 2,
+}
+
 export type ShaderProgramInfo = {
   program: WebGLProgram;
-  attributeLocations: { [attributeName: string]: number };
   uniformLocations: { [attributeName: string]: WebGLUniformLocation };
 };
 
@@ -18,39 +23,34 @@ function initialiseTriShaders(gl: WebGL2RenderingContext): ShaderProgramInfo {
   const fragmentShader = createShader(gl, "fragment", gl.FRAGMENT_SHADER);
   const shaderProgram = createShaderProgram(gl, vertexShader, fragmentShader);
 
+  setAttributeLocation(gl, shaderProgram, AttributeLocations.vertexPosition);
+  setAttributeLocation(gl, shaderProgram, AttributeLocations.vertexColor);
+  setAttributeLocation(gl, shaderProgram, AttributeLocations.vertexNormal);
+
   return {
     program: shaderProgram,
-    attributeLocations: {
-      vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-      vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal"),
-    },
     uniformLocations: {
       projectionMatrix: getUniformLocation(
         gl,
         shaderProgram,
-        "uProjectionMatrix"
+        "projectionMatrix"
       ),
-      modelViewMatrix: getUniformLocation(
-        gl,
-        shaderProgram,
-        "uModelViewMatrix"
-      ),
-      normalMatrix: getUniformLocation(gl, shaderProgram, "uNormalMatrix"),
+      modelViewMatrix: getUniformLocation(gl, shaderProgram, "modelViewMatrix"),
+      normalMatrix: getUniformLocation(gl, shaderProgram, "normalMatrix"),
       ambientLightColor: getUniformLocation(
         gl,
         shaderProgram,
-        "uAmbientLightColor"
+        "ambientLightColor"
       ),
       directionalLightColor: getUniformLocation(
         gl,
         shaderProgram,
-        "uDirectionalLightColor"
+        "directionalLightColor"
       ),
       directionalLightDirection: getUniformLocation(
         gl,
         shaderProgram,
-        "uDirectionalLightDirection"
+        "directionalLightDirection"
       ),
     },
   };
@@ -61,23 +61,18 @@ function initialiseLineShaders(gl: WebGL2RenderingContext): ShaderProgramInfo {
   const fragmentShader = createShader(gl, "lineFragment", gl.FRAGMENT_SHADER);
   const shaderProgram = createShaderProgram(gl, vertexShader, fragmentShader);
 
+  setAttributeLocation(gl, shaderProgram, AttributeLocations.vertexPosition);
+  setAttributeLocation(gl, shaderProgram, AttributeLocations.vertexColor);
+
   return {
     program: shaderProgram,
-    attributeLocations: {
-      vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-    },
     uniformLocations: {
       projectionMatrix: getUniformLocation(
         gl,
         shaderProgram,
-        "uProjectionMatrix"
+        "projectionMatrix"
       ),
-      modelViewMatrix: getUniformLocation(
-        gl,
-        shaderProgram,
-        "uModelViewMatrix"
-      ),
+      modelViewMatrix: getUniformLocation(gl, shaderProgram, "modelViewMatrix"),
     },
   };
 }
@@ -131,6 +126,26 @@ function createShaderProgram(
   }
 
   return program;
+}
+
+function setAttributeLocation(
+  gl: WebGL2RenderingContext,
+  shaderProgram: WebGLProgram,
+  attributeLocation: AttributeLocations
+): number {
+  const name = AttributeLocations[attributeLocation];
+
+  const location = gl.bindAttribLocation(
+    shaderProgram,
+    attributeLocation,
+    name
+  );
+
+  if (location === null) {
+    throw new Error(`Unable to find uniform ${name}`);
+  }
+
+  return attributeLocation;
 }
 
 function getUniformLocation(

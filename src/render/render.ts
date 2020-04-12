@@ -1,4 +1,4 @@
-import { ShaderProgramInfo, Shaders } from "./shaders";
+import { ShaderProgramInfo, Shaders, AttributeLocations } from "./shaders";
 import { mat4, vec3 } from "gl-matrix";
 import { Position, toMatrix } from "../position";
 import { degToRad } from "../utils";
@@ -134,23 +134,13 @@ function drawTriModels(
     bindAttributeBuffer(
       gl,
       buffers.position,
-      programInfo.attributeLocations.vertexPosition,
+      AttributeLocations.vertexPosition,
       3
     );
 
-    bindAttributeBuffer(
-      gl,
-      buffers.color,
-      programInfo.attributeLocations.vertexColor,
-      4
-    );
+    bindAttributeBuffer(gl, buffers.color, AttributeLocations.vertexColor, 4);
 
-    bindAttributeBuffer(
-      gl,
-      buffers.normal,
-      programInfo.attributeLocations.vertexNormal,
-      3
-    );
+    bindAttributeBuffer(gl, buffers.normal, AttributeLocations.vertexNormal, 3);
 
     modelViews.forEach((modelViewMatrix) => {
       // TODO: Does this need to be updated per-chunk?
@@ -192,16 +182,11 @@ function drawLineModels(
     bindAttributeBuffer(
       gl,
       buffers.position,
-      programInfo.attributeLocations.vertexPosition,
+      AttributeLocations.vertexPosition,
       3
     );
 
-    bindAttributeBuffer(
-      gl,
-      buffers.color,
-      programInfo.attributeLocations.vertexColor,
-      4
-    );
+    bindAttributeBuffer(gl, buffers.color, AttributeLocations.vertexColor, 4);
     modelViews.forEach((modelViewMatrix) => {
       bindUniformMatrix(
         gl,
