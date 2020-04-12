@@ -16,7 +16,7 @@ function main() {
 }
 
 type Game = {
-  gl: WebGLRenderingContext;
+  gl: WebGL2RenderingContext;
   shaders: Shaders;
   world: World;
 };

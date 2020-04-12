@@ -40,7 +40,7 @@ export function storeLineModel(name: string, model: LineModelData) {
 }
 
 export function getBuffers(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   name: string,
   preferred: ModelKind
 ): ModelBuffers | LineModelBuffers {
@@ -85,7 +85,7 @@ export function getBuffers(
 }
 
 function createModelBuffers(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   { position, color, index, normal }: ModelData
 ): ModelBuffers {
   return {
@@ -99,7 +99,7 @@ function createModelBuffers(
 }
 
 function createLineModelBuffers(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   { position, color, index }: LineModelData
 ): LineModelBuffers {
   return {
@@ -112,7 +112,7 @@ function createLineModelBuffers(
 }
 
 function createArrayBuffer(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   target: number,
   values: BufferSource
 ): WebGLBuffer {

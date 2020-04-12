@@ -1,6 +1,12 @@
-varying lowp vec4 vColor;
-varying lowp vec3 vLighting;
+#version 300 es
+
+precision lowp float;
+
+in vec4 vColor;
+in vec3 vLighting;
+
+out vec4 outputColor;
 
 void main(void) {
-	gl_FragColor = vColor * vec4(vLighting, 1);
+	outputColor = vColor * vec4(vLighting, 1);
 }

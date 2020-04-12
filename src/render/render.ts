@@ -11,12 +11,13 @@ import { getDebugMode } from "../debug/debugMode";
 const clearColor = [135, 206, 235, 255].map((value) => value / 255);
 
 export function render(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   shaders: Shaders,
   world: World
 ) {
   gl.enable(gl.CULL_FACE);
   gl.enable(gl.DEPTH_TEST);
+  gl.disable(gl.BLEND);
   gl.depthFunc(gl.LEQUAL);
 
   gl.clearColor(clearColor[0], clearColor[1], clearColor[2], clearColor[3]);
@@ -32,7 +33,7 @@ export function render(
   drawLineModels(gl, shaders.line, line);
 }
 
-function createProjectionMatrix(gl: WebGLRenderingContext): mat4 {
+function createProjectionMatrix(gl: WebGL2RenderingContext): mat4 {
   const fieldOfView = degToRad(45);
   const aspect =
     (gl.canvas as HTMLCanvasElement).clientWidth /
@@ -59,7 +60,7 @@ function createNormalMatrix(modelViewMatrix: mat4): mat4 {
 }
 
 function bindAttributeBuffer(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   buffer: WebGLBuffer,
   attributeLocation: number,
   numberOfComponents: number
@@ -81,7 +82,7 @@ function bindAttributeBuffer(
 }
 
 function bindUniformMatrix(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   uniformLocation: WebGLUniformLocation,
   matrix: mat4
 ) {
@@ -89,7 +90,7 @@ function bindUniformMatrix(
 }
 
 function bindUniformVector(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   uniformLocation: WebGLUniformLocation,
   vector: vec3
 ) {
@@ -97,7 +98,7 @@ function bindUniformVector(
 }
 
 function drawTriModels(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   programInfo: ShaderProgramInfo,
   renderables: TriRenderables,
   world: World
@@ -120,6 +121,7 @@ function drawTriModels(
     world.directionalLightDirection
   );
 
+  // TODO: Projection matrix doesn't need to keep being updated
   const projectionMatrix = createProjectionMatrix(gl);
   bindUniformMatrix(
     gl,
@@ -151,6 +153,7 @@ function drawTriModels(
     );
 
     modelViews.forEach((modelViewMatrix) => {
+      // TODO: Does this need to be updated per-chunk?
       bindUniformMatrix(
         gl,
         programInfo.uniformLocations.modelViewMatrix,
@@ -172,7 +175,7 @@ function drawTriModels(
 }
 
 function drawLineModels(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   programInfo: ShaderProgramInfo,
   renderables: LineRenderables
 ) {
@@ -233,7 +236,7 @@ type Renderables = {
 
 // Get all renderable objects in the world.
 // Group the output by model, so that we can avoid switching buffers too often later.
-function getRenderables(gl: WebGLRenderingContext, world: World): Renderables {
+function getRenderables(gl: WebGL2RenderingContext, world: World): Renderables {
   const result: Renderables = {
     tri: {},
     line: {},

@@ -9,11 +9,11 @@ export type Shaders = {
   line: ShaderProgramInfo;
 };
 
-export function initialiseShaders(gl: WebGLRenderingContext): Shaders {
+export function initialiseShaders(gl: WebGL2RenderingContext): Shaders {
   return { tri: initialiseTriShaders(gl), line: initialiseLineShaders(gl) };
 }
 
-function initialiseTriShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
+function initialiseTriShaders(gl: WebGL2RenderingContext): ShaderProgramInfo {
   const vertexShader = createShader(gl, "vertex", gl.VERTEX_SHADER);
   const fragmentShader = createShader(gl, "fragment", gl.FRAGMENT_SHADER);
   const shaderProgram = createShaderProgram(gl, vertexShader, fragmentShader);
@@ -23,7 +23,7 @@ function initialiseTriShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
     attributeLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
       vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
-      vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal")
+      vertexNormal: gl.getAttribLocation(shaderProgram, "aVertexNormal"),
     },
     uniformLocations: {
       projectionMatrix: getUniformLocation(
@@ -51,12 +51,12 @@ function initialiseTriShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
         gl,
         shaderProgram,
         "uDirectionalLightDirection"
-      )
-    }
+      ),
+    },
   };
 }
 
-function initialiseLineShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
+function initialiseLineShaders(gl: WebGL2RenderingContext): ShaderProgramInfo {
   const vertexShader = createShader(gl, "lineVertex", gl.VERTEX_SHADER);
   const fragmentShader = createShader(gl, "lineFragment", gl.FRAGMENT_SHADER);
   const shaderProgram = createShaderProgram(gl, vertexShader, fragmentShader);
@@ -65,7 +65,7 @@ function initialiseLineShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
     program: shaderProgram,
     attributeLocations: {
       vertexPosition: gl.getAttribLocation(shaderProgram, "aVertexPosition"),
-      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor")
+      vertexColor: gl.getAttribLocation(shaderProgram, "aVertexColor"),
     },
     uniformLocations: {
       projectionMatrix: getUniformLocation(
@@ -73,20 +73,24 @@ function initialiseLineShaders(gl: WebGLRenderingContext): ShaderProgramInfo {
         shaderProgram,
         "uProjectionMatrix"
       ),
-      modelViewMatrix: getUniformLocation(gl, shaderProgram, "uModelViewMatrix")
-    }
+      modelViewMatrix: getUniformLocation(
+        gl,
+        shaderProgram,
+        "uModelViewMatrix"
+      ),
+    },
   };
 }
 
 function createShader(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   shaderName: string,
   shaderType: number
 ): WebGLShader {
   const shader = gl.createShader(shaderType);
 
   if (shader === null) {
-    throw new Error("Unable to create shader");
+    throw new Error(`Unable to create shader ${shaderName}`);
   }
 
   const shaderSource = require(`./shaders/${shaderName}.glsl`);
@@ -97,14 +101,16 @@ function createShader(
   const success = gl.getShaderParameter(shader, gl.COMPILE_STATUS);
   if (!success) {
     gl.deleteShader(shader);
-    throw new Error("could not compile shader: " + gl.getShaderInfoLog(shader));
+    throw new Error(
+      `could not compile shader ${shaderName}: ${gl.getShaderInfoLog(shader)}`
+    );
   }
 
   return shader;
 }
 
 function createShaderProgram(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   vertexShader: WebGLShader,
   fragmentShader: WebGLShader
 ): WebGLProgram {
@@ -121,14 +127,14 @@ function createShaderProgram(
   const success = gl.getProgramParameter(program, gl.LINK_STATUS);
   if (!success) {
     gl.deleteProgram(program);
-    throw new Error("Program failed to link: " + gl.getProgramInfoLog(program));
+    throw new Error(`Program failed to link: ${gl.getProgramInfoLog(program)}`);
   }
 
   return program;
 }
 
 function getUniformLocation(
-  gl: WebGLRenderingContext,
+  gl: WebGL2RenderingContext,
   shaderProgram: WebGLProgram,
   name: string
 ) {

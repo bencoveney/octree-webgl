@@ -26,7 +26,7 @@ export function corners(size: number): Entity[] {
 }
 
 const entityHeight = 4;
-const entityWidth = 2;
+const entityWidth = 1;
 
 export function center(height: number): Entity[] {
   return [
