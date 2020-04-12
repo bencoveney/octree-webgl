@@ -1,8 +1,8 @@
 #version 300 es
 
 in vec4 vertexPosition;
-in vec3 vertexNormal;
 in vec4 vertexColor;
+in vec3 vertexNormal;
 
 uniform mat4 normalMatrix;
 uniform mat4 modelViewMatrix;

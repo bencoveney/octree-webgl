@@ -26,11 +26,15 @@ export function render(
 
   const { tri, line } = getRenderables(world);
 
-  drawTriModels(gl, shaders.tri, tri, world);
+  if (projectionMatrix === null) {
+    projectionMatrix = createProjectionMatrix(gl);
+  }
+
+  drawTriModels(gl, projectionMatrix, shaders.tri, tri, world);
 
   gl.disable(gl.DEPTH_TEST);
 
-  drawLineModels(gl, shaders.line, line);
+  drawLineModels(gl, projectionMatrix, shaders.line, line);
 }
 
 function createProjectionMatrix(gl: WebGL2RenderingContext): mat4 {
@@ -45,6 +49,8 @@ function createProjectionMatrix(gl: WebGL2RenderingContext): mat4 {
   mat4.perspective(projectionMatrix, fieldOfView, aspect, zNear, zFar);
   return projectionMatrix;
 }
+
+let projectionMatrix: mat4 | null = null;
 
 function createCameraMatrix(position: Position): mat4 {
   const cameraMatrix = toMatrix(position);
@@ -77,6 +83,7 @@ function bindUniformVector(
 
 function drawTriModels(
   gl: WebGL2RenderingContext,
+  projectionMatrix: mat4,
   programInfo: ShaderProgramInfo,
   renderables: TriRenderables,
   world: World
@@ -99,8 +106,6 @@ function drawTriModels(
     world.directionalLightDirection
   );
 
-  // TODO: Projection matrix doesn't need to keep being updated
-  const projectionMatrix = createProjectionMatrix(gl);
   bindUniformMatrix(
     gl,
     programInfo.uniformLocations.projectionMatrix,
@@ -133,12 +138,12 @@ function drawTriModels(
 
 function drawLineModels(
   gl: WebGL2RenderingContext,
+  projectionMatrix: mat4,
   programInfo: ShaderProgramInfo,
   renderables: LineRenderables
 ) {
   gl.useProgram(programInfo.program);
 
-  const projectionMatrix = createProjectionMatrix(gl);
   bindUniformMatrix(
     gl,
     programInfo.uniformLocations.projectionMatrix,

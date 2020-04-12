@@ -43,14 +43,16 @@ export function reconstructWorld(
           resolution,
         ]);
 
-        chunksNdarray.set(x, y, z, ({
+        const chunk: Chunk = {
           voxels,
           originX,
           originY,
           originZ,
           size: resolution,
           name: chunkName(x, y, z),
-        } as Chunk) as any);
+        };
+
+        chunksNdarray.set(x, y, z, chunk as any);
       }
     }
   }

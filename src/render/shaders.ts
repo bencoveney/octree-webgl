@@ -1,7 +1,7 @@
 export enum AttributeLocations {
   vertexPosition = 0,
-  vertexNormal = 1,
-  vertexColor = 2,
+  vertexColor = 1,
+  vertexNormal = 2,
 }
 
 export type ShaderProgramInfo = {
