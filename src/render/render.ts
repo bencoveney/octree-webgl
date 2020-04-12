@@ -53,12 +53,15 @@ function createProjectionMatrix(gl: WebGL2RenderingContext): mat4 {
 let projectionMatrix: mat4 | null = null;
 
 function createCameraMatrix(position: Position): mat4 {
-  const cameraMatrix = toMatrix(position);
+  // TODO: avoid reallocating
+  const cameraMatrix = mat4.create();
+  toMatrix(cameraMatrix, position);
   mat4.invert(cameraMatrix, cameraMatrix);
   return cameraMatrix;
 }
 
 function createNormalMatrix(modelViewMatrix: mat4): mat4 {
+  // TODO: avoid reallocating
   const normalMatrix = mat4.create();
   mat4.invert(normalMatrix, modelViewMatrix);
   mat4.transpose(normalMatrix, normalMatrix);
@@ -112,11 +115,11 @@ function drawTriModels(
     projectionMatrix
   );
 
-  Object.values(renderables).forEach(({ buffers, modelViews }) => {
+  for (const { buffers, modelViews } of Object.values(renderables)) {
     // Tell the GPU which values to insert into the shaders for position, color, normal.
     gl.bindVertexArray(buffers.vao);
 
-    modelViews.forEach((modelViewMatrix) => {
+    for (const modelViewMatrix of modelViews) {
       // TODO: Does this need to be updated per-chunk?
       bindUniformMatrix(
         gl,
@@ -132,8 +135,8 @@ function drawTriModels(
       );
 
       gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
-    });
-  });
+    }
+  }
 }
 
 function drawLineModels(
@@ -226,20 +229,23 @@ function walkSceneGraph(
   ) => void
 ) {
   function walk(parentMatrix: mat4, childNode: SceneGraph.SceneGraphNode) {
-    const childNodeMatrix = mat4.clone(parentMatrix);
+    // Compute the world position (use a cache to avoid reallocating)
+    mat4.identity(childNode.worldPositionCache);
+    toMatrix(childNode.worldPositionCache, childNode.position);
     mat4.multiply(
-      childNodeMatrix,
-      childNodeMatrix,
-      toMatrix(childNode.position)
+      childNode.worldPositionCache,
+      parentMatrix,
+      childNode.worldPositionCache
     );
+
     if (childNode.model) {
       callback(
         childNode as SceneGraph.SceneGraphNode & { model: string },
-        childNodeMatrix
+        childNode.worldPositionCache
       );
     }
     childNode.children.forEach((grandchild) =>
-      walk(childNodeMatrix, grandchild)
+      walk(childNode.worldPositionCache, grandchild)
     );
   }
 

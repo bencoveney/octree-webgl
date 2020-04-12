@@ -22,25 +22,25 @@ export function create(position: vec3, scale: vec3 = [1, 1, 1]): Position {
   };
 }
 
-export function toMatrix({ position, rotation, scale }: Position): mat4 {
-  const matrix = mat4.create();
-  mat4.translate(matrix, matrix, position);
+export function toMatrix(
+  target: mat4,
+  { position, rotation, scale }: Position
+): void {
+  mat4.translate(target, target, position);
 
   const [x, y, z] = rotation;
   // Ordered this way just to support camera rotation.
   if (y) {
-    mat4.rotateY(matrix, matrix, y);
+    mat4.rotateY(target, target, y);
   }
   if (x) {
-    mat4.rotateX(matrix, matrix, x);
+    mat4.rotateX(target, target, x);
   }
   if (z) {
-    mat4.rotateZ(matrix, matrix, z);
+    mat4.rotateZ(target, target, z);
   }
 
   if (scale[0] !== 1 || scale[1] !== 1 || scale[2] !== 1) {
-    mat4.scale(matrix, matrix, scale);
+    mat4.scale(target, target, scale);
   }
-
-  return matrix;
 }
