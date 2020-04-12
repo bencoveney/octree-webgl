@@ -24,14 +24,14 @@ type Game = {
 async function loadGame(): Promise<Game> {
   LoadingScreen.createLoadingScreen();
 
-  const world = await setUpWorld();
-
   const gl = createViewport();
   initDevTools();
   const shaders = initialiseShaders(gl);
 
-  ModelStore.storeModel("cube", cubeModel);
-  ModelStore.storeLineModel("axis", axisModel);
+  const world = await setUpWorld(gl);
+
+  ModelStore.storeModel(gl, "cube", cubeModel);
+  ModelStore.storeLineModel(gl, "axis", axisModel);
 
   setUpMouseHandler(gl.canvas as HTMLCanvasElement);
 

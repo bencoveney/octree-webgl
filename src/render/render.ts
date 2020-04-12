@@ -1,4 +1,4 @@
-import { ShaderProgramInfo, Shaders, AttributeLocations } from "./shaders";
+import { ShaderProgramInfo, Shaders } from "./shaders";
 import { mat4, vec3 } from "gl-matrix";
 import { Position, toMatrix } from "../position";
 import { degToRad } from "../utils";
@@ -24,7 +24,7 @@ export function render(
   gl.clearDepth(1.0);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-  const { tri, line } = getRenderables(gl, world);
+  const { tri, line } = getRenderables(world);
 
   drawTriModels(gl, shaders.tri, tri, world);
 
@@ -57,28 +57,6 @@ function createNormalMatrix(modelViewMatrix: mat4): mat4 {
   mat4.invert(normalMatrix, modelViewMatrix);
   mat4.transpose(normalMatrix, normalMatrix);
   return normalMatrix;
-}
-
-function bindAttributeBuffer(
-  gl: WebGL2RenderingContext,
-  buffer: WebGLBuffer,
-  attributeLocation: number,
-  numberOfComponents: number
-) {
-  const type = gl.FLOAT;
-  const normalize = false;
-  const stride = 0;
-  const offset = 0;
-  gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-  gl.vertexAttribPointer(
-    attributeLocation,
-    numberOfComponents,
-    type,
-    normalize,
-    stride,
-    offset
-  );
-  gl.enableVertexAttribArray(attributeLocation);
 }
 
 function bindUniformMatrix(
@@ -131,16 +109,7 @@ function drawTriModels(
 
   Object.values(renderables).forEach(({ buffers, modelViews }) => {
     // Tell the GPU which values to insert into the shaders for position, color, normal.
-    bindAttributeBuffer(
-      gl,
-      buffers.position,
-      AttributeLocations.vertexPosition,
-      3
-    );
-
-    bindAttributeBuffer(gl, buffers.color, AttributeLocations.vertexColor, 4);
-
-    bindAttributeBuffer(gl, buffers.normal, AttributeLocations.vertexNormal, 3);
+    gl.bindVertexArray(buffers.vao);
 
     modelViews.forEach((modelViewMatrix) => {
       // TODO: Does this need to be updated per-chunk?
@@ -157,8 +126,6 @@ function drawTriModels(
         normalMatrix
       );
 
-      // Tell the GPU which order to draw the vertices in.
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
       gl.drawElements(gl.TRIANGLES, buffers.count, gl.UNSIGNED_SHORT, 0);
     });
   });
@@ -179,14 +146,7 @@ function drawLineModels(
   );
 
   Object.values(renderables).forEach(({ buffers, modelViews }) => {
-    bindAttributeBuffer(
-      gl,
-      buffers.position,
-      AttributeLocations.vertexPosition,
-      3
-    );
-
-    bindAttributeBuffer(gl, buffers.color, AttributeLocations.vertexColor, 4);
+    gl.bindVertexArray(buffers.vao);
     modelViews.forEach((modelViewMatrix) => {
       bindUniformMatrix(
         gl,
@@ -194,8 +154,6 @@ function drawLineModels(
         modelViewMatrix
       );
 
-      // Tell the GPU which order to draw the vertices in.
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, buffers.index);
       gl.drawElements(gl.LINES, buffers.count, gl.UNSIGNED_SHORT, 0);
     });
   });
@@ -203,13 +161,13 @@ function drawLineModels(
 
 type TriRenderables = {
   [modelName: string]: {
-    buffers: ModelStore.ModelBuffers;
+    buffers: ModelStore.TriBuffers;
     modelViews: mat4[];
   };
 };
 type LineRenderables = {
   [modelName: string]: {
-    buffers: ModelStore.LineModelBuffers;
+    buffers: ModelStore.LineBuffers;
     modelViews: mat4[];
   };
 };
@@ -221,7 +179,7 @@ type Renderables = {
 
 // Get all renderable objects in the world.
 // Group the output by model, so that we can avoid switching buffers too often later.
-function getRenderables(gl: WebGL2RenderingContext, world: World): Renderables {
+function getRenderables(world: World): Renderables {
   const result: Renderables = {
     tri: {},
     line: {},
@@ -232,7 +190,7 @@ function getRenderables(gl: WebGL2RenderingContext, world: World): Renderables {
     : "tri";
 
   walkSceneGraph(world, ({ model }, modelView) => {
-    const buffers = ModelStore.getBuffers(gl, model, preferredModelKind);
+    const buffers = ModelStore.getBuffers(model, preferredModelKind);
     if (buffers.kind === "line") {
       if (!result.line[model]) {
         result.line[model] = {

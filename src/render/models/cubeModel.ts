@@ -1,4 +1,4 @@
-import { ModelData } from "../modelStore";
+import { TriGeometry } from "../modelStore";
 
 const position = [
   // Front face
@@ -234,7 +234,7 @@ const normal = [
   0.0,
 ];
 
-export const model: ModelData = {
+export const model: TriGeometry = {
   position: Float32Array.from(position),
   color: Float32Array.from(color),
   index: Uint16Array.from(index),

@@ -1,4 +1,4 @@
-import { LineModelData } from "../modelStore";
+import { LineGeometry } from "../modelStore";
 
 const position = [
   // X
@@ -42,7 +42,7 @@ for (let j = 0; j < faceColors.length; ++j) {
 
 const index = [0, 1, 2, 3, 4, 5];
 
-export const model: LineModelData = {
+export const model: LineGeometry = {
   position: Float32Array.from(position),
   color: Float32Array.from(color),
   index: Uint16Array.from(index),

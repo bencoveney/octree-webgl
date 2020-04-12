@@ -1,4 +1,4 @@
-import { ModelData } from "../render/modelStore";
+import { TriGeometry } from "../render/modelStore";
 import ndarray from "ndarray";
 import { Material, Color, getRgba, getMaterial, getColor } from "../voxel";
 import { Voxels } from "../voxels";
@@ -8,7 +8,7 @@ export function constructVoxelMesh(
   chunkX: number,
   chunkY: number,
   chunkZ: number
-): ModelData {
+): TriGeometry {
   const voxels = chunkVoxels.get(chunkX, chunkY, chunkZ);
 
   const result = {

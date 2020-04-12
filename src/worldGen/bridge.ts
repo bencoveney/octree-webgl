@@ -1,12 +1,13 @@
 import Worker from "worker-loader!./worker";
 import { WorldGenMessage, CreateWorld } from "./message";
-import { ModelData } from "../render/modelStore";
+import { TriGeometry } from "../render/modelStore";
 import * as Chunks from "../chunks";
 import * as ModelStore from "../render/modelStore";
 import { setLoadingScreenText } from "../loading/loadingScreen";
 import { reconstructWorld } from "./reconstructWorld";
 
 export function createWorld(
+  gl: WebGL2RenderingContext,
   // How many voxels along each axis of the chunk.
   resolution: number,
   // The number of chunks along each axis. Total resulting chunks will be size ^3.
@@ -17,7 +18,7 @@ export function createWorld(
       resolution,
       size,
       (message) => setLoadingScreenText("Loading: " + message),
-      (name, model) => ModelStore.storeModel(name, model),
+      (name, model) => ModelStore.storeModel(gl, name, model),
       (voxels) => {
         resolve(reconstructWorld(resolution, size, voxels));
       }
@@ -29,7 +30,7 @@ function dispatchToWorker(
   resolution: number,
   size: number,
   onStatus: (message: string) => void,
-  onModelCreated: (name: string, model: ModelData) => void,
+  onModelCreated: (name: string, model: TriGeometry) => void,
   onWorldCreated: (voxels: ArrayBuffer) => void
 ): void {
   const worker = new Worker();

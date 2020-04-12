@@ -48,13 +48,13 @@ export function create(
   };
 }
 
-export async function setUpWorld(): Promise<World> {
+export async function setUpWorld(gl: WebGL2RenderingContext): Promise<World> {
   const resolution = 64;
   const size = 6;
 
   const entities = EntityFactories.center(resolution * (size / 2));
 
-  const chunks = await WorldGen.createWorld(resolution, size);
+  const chunks = await WorldGen.createWorld(gl, resolution, size);
 
   const sceneGraph = SceneGraph.init();
   Chunks.addToWorld(chunks, sceneGraph);
