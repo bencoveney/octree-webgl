@@ -1,6 +1,6 @@
 import ndarray from "ndarray";
-import { Voxel } from "../voxel";
-import { Chunks, Chunk, chunkName } from "../chunks";
+import { Voxel } from "../world/voxel";
+import { Chunks, Chunk, chunkName } from "../world/chunks";
 
 // Create friendlier chunk objects from buffer received from worker.
 export function reconstructWorld(

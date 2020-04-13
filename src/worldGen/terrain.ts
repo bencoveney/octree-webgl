@@ -1,7 +1,7 @@
 import { Heightmap } from "./heightmap";
 import { Flowmap } from "./rivers";
 import { createNdarrayOfSameSize, forEach2d } from "../utils";
-import { Material, Color, create, Voxel } from "../voxel";
+import { Material, Color, create, Voxel } from "../world/voxel";
 import ndarray from "ndarray";
 
 export type Terrainmap = ndarray<Voxel>;

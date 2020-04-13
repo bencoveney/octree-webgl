@@ -1,5 +1,5 @@
-import * as Voxels from "../voxels";
-import * as VoxelFactories from "../voxelFactories";
+import * as Voxels from "../world/voxels";
+import * as VoxelFactories from "../world/voxelFactories";
 import ndarray from "ndarray";
 import { Heightmap } from "./heightmap";
 import { Terrainmap } from "./terrain";

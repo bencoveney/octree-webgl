@@ -6,6 +6,9 @@
 - [WebGL Fundamentals: Instanced Drawing](https://webglfundamentals.org/webgl/lessons/webgl-instanced-drawing.html)
 - [Color Palette](https://lospec.com/palette-list/zughy-32)
 - [Ray tracing](http://www.cse.yorku.ca/~amana/research/grid.pdf)
+- [Voronoi 1](https://www.gamedev.net/articles/programming/general-and-gameplay-programming/tiles-to-curves-fun-with-voronoi-graphs-part-1-r5150/)
+- [Voronoi 2](http://www-cs-students.stanford.edu/~amitp/game-programming/polygon-map-generation/)
+- [Voronoi 3](https://azgaar.wordpress.com/)
 
 # Things to try
 

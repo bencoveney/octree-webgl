@@ -3,8 +3,8 @@ import * as Voxels from "./voxels";
 import * as SceneGraph from "./sceneGraph";
 import * as Position from "./position";
 import { vec3 } from "gl-matrix";
-import { forEach3d } from "./utils";
-import { hasBuffers } from "./render/modelStore";
+import { forEach3d } from "../utils";
+import { hasBuffers } from "../render/modelStore";
 
 export type Chunks = ndarray<Chunk>;
 export type Chunk = {

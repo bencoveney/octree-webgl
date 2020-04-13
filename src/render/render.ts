@@ -1,9 +1,9 @@
 import { ShaderProgramInfo, Shaders } from "./shaders";
 import { mat4, vec3 } from "gl-matrix";
-import { Position, toMatrix } from "../position";
+import { Position, toMatrix } from "../world/position";
 import { degToRad, SKYBLUE } from "../utils";
-import { World } from "../world";
-import * as SceneGraph from "../sceneGraph";
+import { World } from "../world/world";
+import * as SceneGraph from "../world/sceneGraph";
 import * as ModelStore from "./modelStore";
 import { getDebugMode } from "../debug/debugMode";
 

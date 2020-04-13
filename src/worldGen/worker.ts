@@ -1,7 +1,7 @@
 import { WorldGenMessage, CreateWorld } from "./message";
 import { buildWorldChunks } from "./buildWorldChunks";
 import { forEach3d } from "../utils";
-import { chunkName } from "../chunks";
+import { chunkName } from "../world/chunks";
 import { constructVoxelMesh } from "./constructVoxelMesh";
 import {
   createHeightmap,

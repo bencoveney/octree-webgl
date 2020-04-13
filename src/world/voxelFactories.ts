@@ -2,8 +2,8 @@ import { VoxelFactory } from "./voxels";
 import * as Voxel from "./voxel";
 import * as Noise from "simplenoise";
 import { vec3 } from "gl-matrix";
-import { Heightmap } from "./worldGen/heightmap";
-import { Terrainmap } from "./worldGen/terrain";
+import { Heightmap } from "../worldGen/heightmap";
+import { Terrainmap } from "../worldGen/terrain";
 
 Noise.seed(Math.random());
 

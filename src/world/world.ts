@@ -4,10 +4,10 @@ import { vec3 } from "gl-matrix";
 import { Entity } from "./entity";
 import { collisionCheck } from "./collision";
 import * as EntityFactories from "./entityFactories";
-import { isKeyDown } from "./keyHandler";
-import { getMovement } from "./mouseHandler";
+import { isKeyDown } from "../input/keyHandler";
+import { getMovement } from "../input/mouseHandler";
 import * as Chunks from "./chunks";
-import * as WorldGen from "./worldGen/bridge";
+import * as WorldGen from "../worldGen/bridge";
 
 export type World = {
   sceneGraph: SceneGraph.SceneGraphNode;

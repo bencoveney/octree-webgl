@@ -1,11 +1,17 @@
 import { TriGeometry } from "../render/modelStore";
 import ndarray from "ndarray";
-import { Material, Color, getRgba, getMaterial, getColor } from "../voxel";
-import { Voxels } from "../voxels";
+import {
+  Material,
+  Color,
+  getRgba,
+  getMaterial,
+  getColor,
+} from "../world/voxel";
+import { Voxels } from "../world/voxels";
 
 type UntypedTriGeometry = {
-  [key in keyof TriGeometry]: number[]
-}
+  [key in keyof TriGeometry]: number[];
+};
 
 export function constructVoxelMesh(
   chunkVoxels: ndarray<Voxels>,
@@ -22,7 +28,9 @@ export function constructVoxelMesh(
     normal: [],
   };
 
-  const isEmpty = !(voxels.data as Uint8Array).some(voxel => getMaterial(voxel) !== Material.AIR);
+  const isEmpty = !(voxels.data as Uint8Array).some(
+    (voxel) => getMaterial(voxel) !== Material.AIR
+  );
   if (isEmpty) {
     return buildTypedModel(result);
   }

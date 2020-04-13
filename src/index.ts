@@ -7,8 +7,8 @@ import { model as axisModel } from "./render/models/axisModel";
 import { render } from "./render/render";
 import * as ModelStore from "./render/modelStore";
 import { DEBUG_KEY } from "./debug/debugMode";
-import { setUpWorld, update, World } from "./world";
-import { setUpMouseHandler } from "./mouseHandler";
+import { setUpWorld, update, World } from "./world/world";
+import { setUpMouseHandler } from "./input/mouseHandler";
 import * as LoadingScreen from "./loading/loadingScreen";
 
 function main() {

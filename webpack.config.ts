@@ -5,10 +5,11 @@ const CleanWebpackPlugin = require("clean-webpack-plugin").CleanWebpackPlugin;
 const path = require("path");
 const package = require("./package.json");
 
-module.exports = {
+const config = {
   entry: {
     index: ["./src/index.ts"],
     palette: ["./src/palette.ts"],
+    worldGen: ["./src/worldGen.ts"],
   },
   output: {
     filename: "[name].js",
@@ -23,18 +24,33 @@ module.exports = {
     ],
   },
   plugins: [
-    new CleanWebpackPlugin(),
     new TsConfigWebpackPlugin(),
     new ScssConfigWebpackPlugin(),
     new HtmlWebpackPlugin({
       chunks: ["index"],
       filename: "index.html",
-      title: package.name,
+      title: "Game",
     }),
     new HtmlWebpackPlugin({
       chunks: ["palette"],
       filename: "palette.html",
-      title: package.name,
+      title: "Palette Viewer",
+    }),
+    new HtmlWebpackPlugin({
+      chunks: ["worldGen"],
+      filename: "worldGen.html",
+      title: "WorldGen Viewer",
     }),
   ],
+};
+
+module.exports = (env, argv) => {
+  // if (argv.mode === 'development') {
+  // }
+
+  if (argv.mode === "production") {
+    config.plugins.push(new CleanWebpackPlugin());
+  }
+
+  return config;
 };

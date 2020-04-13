@@ -1,4 +1,4 @@
-import { listenForPress } from "../keyHandler";
+import { listenForPress } from "../input/keyHandler";
 
 export const DEBUG_KEY = "i";
 

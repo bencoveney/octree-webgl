@@ -1,7 +1,7 @@
 import Worker from "worker-loader!./worker";
 import { WorldGenMessage, CreateWorld } from "./message";
 import { TriGeometry } from "../render/modelStore";
-import * as Chunks from "../chunks";
+import * as Chunks from "../world/chunks";
 import * as ModelStore from "../render/modelStore";
 import {
   setLoadingScreenText,

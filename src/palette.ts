@@ -1,5 +1,5 @@
 import "./palette.scss";
-import { Color, HEX_PALETTE } from "./voxel";
+import { Color, HEX_PALETTE } from "./world/voxel";
 
 Object.keys(Color)
   .filter((color) => "" + parseInt(color) === color)
