@@ -9,6 +9,7 @@ import {
   normalizeHeightmap,
   scaleHeightmap,
 } from "./heightmap";
+import { createRivers } from "./rivers";
 
 const context: Worker = self as any;
 
@@ -69,6 +70,14 @@ function createWorld({ size, resolution }: CreateWorld) {
   ]);
   normalizeHeightmap(heightmap);
 
+  send({
+    kind: "mapUpdated",
+    message: "Calculating rivers",
+    axisSize: axisTotalSize,
+    heightmap: heightmap.data as Float32Array,
+  });
+  const rivers = createRivers(heightmap);
+
   // cloud be /2
   scaleHeightmap(heightmap, axisTotalSize / 8);
 
@@ -76,7 +85,7 @@ function createWorld({ size, resolution }: CreateWorld) {
     kind: "mapUpdated",
     message: "Generating voxels",
     axisSize: axisTotalSize,
-    heightmap: heightmap.data as Float32Array,
+    heightmap: rivers.data as Float32Array,
   });
 
   const totalChunks = size * size * size;

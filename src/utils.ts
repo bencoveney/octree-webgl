@@ -29,3 +29,11 @@ export function forEach2d<T>(
     }
   }
 }
+
+export function createNdarrayOfSameSize<T = number>(
+  source: ndarray,
+  arrayCreator: (size: number) => ndarray.Data<T>
+): ndarray<T> {
+  const data = arrayCreator(source.data.length);
+  return ndarray(data, source.shape);
+}
