@@ -17,7 +17,6 @@ export type Octave = {
 
 export function populateHeightmap(
   heightmap: Heightmap,
-  multiplier: number,
   octaves: Octave[]
 ): void {
   forEach2d(heightmap, (_, x, y) => {
@@ -25,7 +24,27 @@ export function populateHeightmap(
     for (const { step, amplitude } of octaves) {
       height += perlin2(x / step, y / step) * amplitude;
     }
-    heightmap.set(x, y, height * multiplier);
+    heightmap.set(x, y, height);
+  });
+}
+
+export function normalizeHeightmap(heightmap: Heightmap) {
+  let minValue = Number.MAX_SAFE_INTEGER;
+  let maxValue = Number.MIN_SAFE_INTEGER;
+
+  forEach2d(heightmap, (value) => {
+    minValue = Math.min(value, minValue);
+    maxValue = Math.max(value, maxValue);
+  });
+
+  forEach2d(heightmap, (value, x, y) => {
+    heightmap.set(x, y, (value - minValue) / (maxValue - minValue));
+  });
+}
+
+export function scaleHeightmap(heightmap: Heightmap, amount: number) {
+  forEach2d(heightmap, (value, x, y) => {
+    heightmap.set(x, y, value * amount);
   });
 }
 

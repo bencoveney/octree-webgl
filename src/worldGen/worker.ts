@@ -3,7 +3,12 @@ import { buildWorldChunks } from "./buildWorldChunks";
 import { forEach3d } from "../utils";
 import { chunkName } from "../chunks";
 import { constructVoxelMesh } from "./constructVoxelMesh";
-import { createHeightmap, populateHeightmap } from "./heightmap";
+import {
+  createHeightmap,
+  populateHeightmap,
+  normalizeHeightmap,
+  scaleHeightmap,
+} from "./heightmap";
 
 const context: Worker = self as any;
 
@@ -55,13 +60,17 @@ function createWorld({ size, resolution }: CreateWorld) {
     heightmap: heightmap.data as Float32Array,
   });
 
-  populateHeightmap(heightmap, 50, [
+  populateHeightmap(heightmap, [
     { step: 32, amplitude: 0.2 },
     { step: 64, amplitude: 0.4 },
     { step: 128, amplitude: 0.6 },
     { step: 256, amplitude: 0.8 },
     { step: 512, amplitude: 1 },
   ]);
+  normalizeHeightmap(heightmap);
+
+  // cloud be /2
+  scaleHeightmap(heightmap, axisTotalSize / 8);
 
   send({
     kind: "mapUpdated",
