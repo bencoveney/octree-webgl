@@ -17,17 +17,17 @@ export function createSurfaceTerrain(
 
   forEach2d(heightmap, (height, x, y) => {
     let material: Material = Material.AIR;
-    let color: Color = Color.COLOR_0;
+    let color: Color = Color.BROWN_0;
 
     if (height < 0.25) {
       material = Material.MATERIAL_1;
-      color = Color.COLOR_1;
+      color = Color.BROWN_1;
     } else if (height < 0.5) {
       material = Material.MATERIAL_2;
-      color = Color.COLOR_2;
+      color = Color.BROWN_2;
     } else {
       material = Material.MATERIAL_3;
-      color = Color.COLOR_3;
+      color = Color.BROWN_3;
     }
 
     const voxel = create(material, color);
@@ -44,7 +44,7 @@ export function createSurfaceTerrain(
     const scaledWidth = Math.ceil(riverWidth / 50);
 
     let material: Material = Material.MATERIAL_4;
-    let color: Color = Color.COLOR_4;
+    let color: Color = Color.BROWN_4;
 
     const voxel = create(material, color);
 

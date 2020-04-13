@@ -7,42 +7,42 @@ import { vec4 } from "gl-matrix";
 
 export type Voxel = number;
 
-export const enum Color {
-  COLOR_0 = 0b00000,
-  COLOR_1 = 0b00001,
-  COLOR_2 = 0b00010,
-  COLOR_3 = 0b00011,
-  COLOR_4 = 0b00100,
-  COLOR_5 = 0b00101,
-  COLOR_6 = 0b00110,
-  COLOR_7 = 0b00111,
-  COLOR_8 = 0b01000,
-  COLOR_9 = 0b01001,
-  COLOR_10 = 0b01010,
-  COLOR_11 = 0b01011,
-  COLOR_12 = 0b01100,
-  COLOR_13 = 0b01101,
-  COLOR_14 = 0b01110,
-  COLOR_15 = 0b01111,
-  COLOR_16 = 0b10000,
-  COLOR_17 = 0b10001,
-  COLOR_18 = 0b10010,
-  COLOR_19 = 0b10011,
-  COLOR_20 = 0b10100,
-  COLOR_21 = 0b10101,
-  COLOR_22 = 0b10110,
-  COLOR_23 = 0b10111,
-  COLOR_24 = 0b11000,
-  COLOR_25 = 0b11001,
-  COLOR_26 = 0b11010,
-  COLOR_27 = 0b11011,
-  COLOR_28 = 0b11100,
-  COLOR_29 = 0b11101,
-  COLOR_30 = 0b11110,
-  COLOR_31 = 0b11111,
+export enum Color {
+  BROWN_0 = 0b00000,
+  BROWN_1 = 0b00001,
+  BROWN_2 = 0b00010,
+  BROWN_3 = 0b00011,
+  BROWN_4 = 0b00100,
+  BROWN_5 = 0b00101,
+  BROWN_6 = 0b00110,
+  GREEN_0 = 0b00111,
+  GREEN_1 = 0b01000,
+  GREEN_2 = 0b01001,
+  GREEN_3 = 0b01010,
+  GREY_0 = 0b01011,
+  GREY_1 = 0b01100,
+  GREY_2 = 0b01101,
+  GREY_3 = 0b01110,
+  GREY_4 = 0b01111,
+  BLUE_0 = 0b10000,
+  BLUE_1 = 0b10001,
+  BLUE_2 = 0b10010,
+  BLUE_3 = 0b10011,
+  BLUE_4 = 0b10100,
+  PURPLE_0 = 0b10101,
+  PURPLE_1 = 0b10110,
+  PURPLE_2 = 0b10111,
+  PINK_0 = 0b11000,
+  PINK_1 = 0b11001,
+  YELLOW_0 = 0b11010,
+  ORANGE_1 = 0b11011,
+  RED_1 = 0b11100,
+  RED_2 = 0b11101,
+  PURPLE_3 = 0b11110,
+  BLUEGREY_0 = 0b11111,
 }
 
-const palette = [
+export const HEX_PALETTE = [
   "472d3c",
   "5e3643",
   "7a444a",
@@ -75,7 +75,9 @@ const palette = [
   "a93b3b",
   "827094",
   "4f546b",
-].map((hex) => {
+];
+
+const rgbaPalette = HEX_PALETTE.map((hex) => {
   var bigint = parseInt(hex, 16);
   var r = (bigint >> 16) & 255;
   var g = (bigint >> 8) & 255;
@@ -109,5 +111,5 @@ export function getColor(voxel: number): Color {
 }
 
 export function getRgba(color: Color) {
-  return palette[color];
+  return rgbaPalette[color];
 }
