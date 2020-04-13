@@ -12,7 +12,7 @@ export type Flowmap = ndarray<number>;
 export function createRivers(heightmap: Heightmap): Flowmap {
   const flowmap: Flowmap = createNdarrayOfSameSize(
     heightmap,
-    (size) => new Uint8Array(size)
+    (size) => new Uint16Array(size)
   );
 
   simulateRainfall(heightmap, flowmap);
@@ -23,6 +23,8 @@ export function createRivers(heightmap: Heightmap): Flowmap {
 }
 
 const MAX_DROPLET_LIFETIME = 50;
+
+const MAX_FLOW = 255;
 
 function simulateRainfall(heightmap: Heightmap, flowmap: Flowmap) {
   for (
@@ -37,6 +39,7 @@ function simulateRainfall(heightmap: Heightmap, flowmap: Flowmap) {
     ) {
       let posX = dropletInitialX;
       let posY = dropletInitialY;
+      let previousFlow = 0;
 
       for (
         let dropletAge = 0;
@@ -68,8 +71,12 @@ function simulateRainfall(heightmap: Heightmap, flowmap: Flowmap) {
         const voxelX = Math.floor(posX);
         const voxelY = Math.floor(posY);
 
-        const currentFlow = flowmap.get(voxelX, voxelY) || 0;
+        let currentFlow = Math.min(
+          Math.max(flowmap.get(voxelX, voxelY) || 0, previousFlow / 2),
+          MAX_FLOW
+        );
         flowmap.set(voxelX, voxelY, currentFlow + 1);
+        previousFlow = currentFlow;
       }
     }
   }
