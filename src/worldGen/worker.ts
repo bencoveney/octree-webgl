@@ -10,6 +10,7 @@ import {
   scaleHeightmap,
 } from "./heightmap";
 import { createRivers } from "./rivers";
+import { createSurfaceTerrain } from "./terrain";
 
 const context: Worker = self as any;
 
@@ -78,6 +79,14 @@ function createWorld({ size, resolution }: CreateWorld) {
   });
   const rivers = createRivers(heightmap);
 
+  send({
+    kind: "mapUpdated",
+    message: "Calculating surface materials",
+    axisSize: axisTotalSize,
+    heightmap: rivers.data as Float32Array,
+  });
+  const terrainmap = createSurfaceTerrain(heightmap, rivers);
+
   // cloud be /2
   scaleHeightmap(heightmap, axisTotalSize / 8);
 
@@ -85,7 +94,7 @@ function createWorld({ size, resolution }: CreateWorld) {
     kind: "mapUpdated",
     message: "Generating voxels",
     axisSize: axisTotalSize,
-    heightmap: rivers.data as Float32Array,
+    heightmap: terrainmap.data as Float32Array,
   });
 
   const totalChunks = size * size * size;
@@ -96,7 +105,8 @@ function createWorld({ size, resolution }: CreateWorld) {
     resolution,
     size,
     voxelBuffer,
-    heightmap
+    heightmap,
+    terrainmap
   );
   forEach3d(chunkVoxels, (_, x, y, z) => {
     const name = chunkName(x, y, z);

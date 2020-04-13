@@ -39,7 +39,7 @@ export const enum Color {
   COLOR_28 = 0b11100,
   COLOR_29 = 0b11101,
   COLOR_30 = 0b11110,
-  COLOR_31 = 0b11111
+  COLOR_31 = 0b11111,
 }
 
 const palette = [
@@ -74,8 +74,8 @@ const palette = [
   "e6482e",
   "a93b3b",
   "827094",
-  "4f546b"
-].map(hex => {
+  "4f546b",
+].map((hex) => {
   var bigint = parseInt(hex, 16);
   var r = (bigint >> 16) & 255;
   var g = (bigint >> 8) & 255;
@@ -91,7 +91,7 @@ export const enum Material {
   MATERIAL_4 = 0b100,
   MATERIAL_5 = 0b101,
   MATERIAL_6 = 0b110,
-  MATERIAL_7 = 0b111
+  MATERIAL_7 = 0b111,
 }
 
 export function create(material: Material, color: Color): number {

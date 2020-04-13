@@ -7,7 +7,7 @@ type Gradient = {
   gradientY: number;
 };
 
-type Flowmap = ndarray<number>;
+export type Flowmap = ndarray<number>;
 
 export function createRivers(heightmap: Heightmap): Flowmap {
   const flowmap: Flowmap = createNdarrayOfSameSize(

@@ -2,12 +2,14 @@ import * as Voxels from "../voxels";
 import * as VoxelFactories from "../voxelFactories";
 import ndarray from "ndarray";
 import { Heightmap } from "./heightmap";
+import { Terrainmap } from "./terrain";
 
 export function buildWorldChunks(
   resolution: number,
   size: number,
   voxelBuffer: ArrayBuffer,
-  heightmap: Heightmap
+  heightmap: Heightmap,
+  terrainmap: Terrainmap
 ): ndarray<Voxels.Voxels> {
   const chunkVoxels: ndarray<Voxels.Voxels> = ndarray(
     new Array(size * size * size),
@@ -40,7 +42,8 @@ export function buildWorldChunks(
             y * resolution,
             z * resolution,
             size * resolution,
-            heightmap
+            heightmap,
+            terrainmap
           ),
           typedArray
         );

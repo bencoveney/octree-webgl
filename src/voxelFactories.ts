@@ -3,6 +3,7 @@ import * as Voxel from "./voxel";
 import * as Noise from "simplenoise";
 import { vec3 } from "gl-matrix";
 import { Heightmap } from "./worldGen/heightmap";
+import { Terrainmap } from "./worldGen/terrain";
 
 Noise.seed(Math.random());
 
@@ -52,18 +53,22 @@ export const fromHeightmap: (
   offsetY: number,
   offsetZ: number,
   maxValue: number,
-  heightmap: Heightmap
-) => VoxelFactory = (offsetX, offsetY, offsetZ, maxValue, heightmap) => (
-  x,
-  y,
-  z
-) => {
+  heightmap: Heightmap,
+  terrainmap: Terrainmap
+) => VoxelFactory = (
+  offsetX,
+  offsetY,
+  offsetZ,
+  maxValue,
+  heightmap,
+  terrainmap
+) => (x, y, z) => {
   const actualX = offsetX + x;
   const actualY = offsetY + y;
   const actualZ = offsetZ + z;
   const isSolid = actualY < heightmap.get(actualX, actualZ) + maxValue / 2;
   const material = isSolid ? Voxel.Material.MATERIAL_1 : Voxel.Material.AIR;
-  return Voxel.create(material, heightColor(actualX, actualY, actualZ));
+  return Voxel.create(material, terrainmap.get(actualX, actualZ));
 };
 
 export const circle: VoxelFactory = (x, y, z, _size, halfSize) => {
