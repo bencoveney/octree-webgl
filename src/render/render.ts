@@ -1,14 +1,14 @@
 import { ShaderProgramInfo, Shaders } from "./shaders";
 import { mat4, vec3 } from "gl-matrix";
 import { Position, toMatrix } from "../position";
-import { degToRad } from "../utils";
+import { degToRad, SKYBLUE } from "../utils";
 import { World } from "../world";
 import * as SceneGraph from "../sceneGraph";
 import * as ModelStore from "./modelStore";
 import { getDebugMode } from "../debug/debugMode";
 
 // "skyblue"
-const clearColor = [135, 206, 235, 255].map((value) => value / 255);
+const clearColor = SKYBLUE.map((value) => value / 255);
 
 export function render(
   gl: WebGL2RenderingContext,

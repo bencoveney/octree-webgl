@@ -1,5 +1,7 @@
 import ndarray from "ndarray";
 
+export const SKYBLUE = [135, 206, 235, 255];
+
 export function degToRad(d: number): number {
   return (d * Math.PI) / 180;
 }
