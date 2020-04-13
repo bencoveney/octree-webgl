@@ -32,6 +32,12 @@ function send(message: WorldGenMessage): void {
         message.model.position.buffer,
       ]);
       break;
+    case "mapUpdated":
+      const heightmapCopy = new Float32Array(message.heightmap);
+      context.postMessage({ ...message, heightmap: heightmapCopy }, [
+        heightmapCopy.buffer,
+      ]);
+      break;
     default:
       context.postMessage(message);
       break;
@@ -39,10 +45,16 @@ function send(message: WorldGenMessage): void {
 }
 
 function createWorld({ size, resolution }: CreateWorld) {
-  send({ kind: "status", message: "Creating heightmap" });
-
   const axisTotalSize = size * resolution;
   const heightmap = createHeightmap(axisTotalSize);
+
+  send({
+    kind: "mapUpdated",
+    message: "Creating heightmap",
+    axisSize: axisTotalSize,
+    heightmap: heightmap.data as Float32Array,
+  });
+
   populateHeightmap(heightmap, 50, [
     { step: 32, amplitude: 0.2 },
     { step: 64, amplitude: 0.4 },
@@ -51,7 +63,12 @@ function createWorld({ size, resolution }: CreateWorld) {
     { step: 512, amplitude: 1 },
   ]);
 
-  send({ kind: "status", message: "Generating voxels" });
+  send({
+    kind: "mapUpdated",
+    message: "Generating voxels",
+    axisSize: axisTotalSize,
+    heightmap: heightmap.data as Float32Array,
+  });
 
   const totalChunks = size * size * size;
   const totalVoxelsPerChunk = resolution * resolution * resolution;

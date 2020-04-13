@@ -24,8 +24,16 @@ export type Status = {
   message: string;
 };
 
+export type MapUpdated = {
+  kind: "mapUpdated";
+  axisSize: number;
+  heightmap: Float32Array;
+  message: string;
+};
+
 export type WorldGenMessage =
   | CreateWorld
   | WorldCreated
   | ModelCreated
-  | Status;
+  | Status
+  | MapUpdated;

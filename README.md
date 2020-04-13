@@ -12,6 +12,9 @@
 - Raycasting
 - Terrain
 - Lighting
+- Allow some movement when jumping
+- Allow walking up 1 voxel
+- Particles
 
 # Optimisations
 
@@ -19,4 +22,5 @@
 - Send color palette to shader
 - Lazyload scripts during loading screen
 - More typed array usage (specifically ints)
+- Move more logic to workers
 - TODOs
